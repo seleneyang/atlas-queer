@@ -376,6 +376,83 @@ textarea { resize: vertical; min-height: 64px; }
 
 .timeline-wrap { display: none; height: 480px; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 24px; overflow-y: auto; }
 .timeline-wrap.on { display: block; }
+
+.below-map {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+.below-map.on { display: flex; }
+.below-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+}
+.below-card h3 {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.below-card .bc-source {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--olive);
+  margin-bottom: 14px;
+}
+.bio-extract {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  max-height: 220px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  font-weight: 400;
+}
+.bio-extract p { margin: 0 0 10px; }
+.bio-extract p:last-child { margin-bottom: 0; }
+.wd-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 10px 18px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.wd-list dt {
+  font-weight: 700;
+  color: var(--olive);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+.wd-list dd { color: var(--ink); font-weight: 500; }
+.bc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 9px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  transition: all 0.15s;
+  align-self: flex-start;
+  font-family: var(--body);
+}
+.bc-link:hover { background: var(--amber); border-color: var(--amber); }
+.bc-link .arrow { font-size: 14px; line-height: 1; }
 .timeline-wrap h3 { font-family: var(--display); font-size: 24px; font-weight: 500; margin-bottom: 4px; color: var(--ink); }
 .timeline-wrap .tl-sub { font-size: 11px; color: var(--olive); margin-bottom: 18px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
 .tl-axis { position: relative; padding: 24px 0; }
@@ -597,6 +674,21 @@ footer a { color: var(--teal); }
       <div class="tl-axis" id="tl-axis" style="height:120px"><div class="tl-line"></div></div>
       <div class="tl-decades" id="tl-decades"></div>
     </div>
+
+    <div class="below-map" id="below-map">
+      <div class="below-card">
+        <h3>Biografía</h3>
+        <div class="bc-source" id="bio-source">Wikipedia</div>
+        <div class="bio-extract" id="bio-extract"></div>
+        <a class="bc-link" id="bio-link" href="#" target="_blank" rel="noopener">Leer en Wikipedia <span class="arrow">→</span></a>
+      </div>
+      <div class="below-card">
+        <h3>Datos</h3>
+        <div class="bc-source">Wikidata</div>
+        <dl class="wd-list" id="wd-list"></dl>
+        <a class="bc-link" id="wd-link" href="#" target="_blank" rel="noopener">Ver en Wikidata <span class="arrow">→</span></a>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -780,6 +872,60 @@ async function wdGetLabel(qid) {
   } catch (e) { return qid; }
 }
 
+// Wikipedia REST API summary — extracts intro paragraph + canonical URL
+async function fetchBio(title, lang) {
+  if (!title) return null;
+  try {
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+function populateWdCard(person) {
+  const wdList = document.getElementById('wd-list');
+  const wdLink = document.getElementById('wd-link');
+  const rows = [];
+  if (person.birthYear || person.deathYear) {
+    rows.push(['Vida', `${person.birthYear ?? '?'} – ${person.deathYear ?? ''}`.trim()]);
+  }
+  if (person.pobLabel) rows.push(['Lugar', person.pobLabel]);
+  if (person.description) rows.push(['Descripción', person.description]);
+  rows.push(['Identificador', person.qid]);
+
+  wdList.innerHTML = rows.map(([dt, dd]) =>
+    `<dt>${escapeHtml(dt)}</dt><dd>${escapeHtml(dd)}</dd>`
+  ).join('');
+  wdLink.href = `https://www.wikidata.org/wiki/${person.qid}`;
+}
+
+async function populateBioCard(person) {
+  const bioExtract = document.getElementById('bio-extract');
+  const bioLink = document.getElementById('bio-link');
+  const bioSource = document.getElementById('bio-source');
+
+  bioExtract.innerHTML = '<p style="font-style:italic;color:var(--ink-mute)"><span class="spinner"></span> Cargando biografía…</p>';
+  bioLink.style.display = 'none';
+
+  const tryLangs = LANGS.filter(l => person.sitelinks[l.code]);
+  for (const l of tryLangs) {
+    const bio = await fetchBio(person.sitelinks[l.code], l.code);
+    if (bio && bio.extract) {
+      bioExtract.innerHTML = `<p>${escapeHtml(bio.extract)}</p>`;
+      bioLink.href = bio.content_urls?.desktop?.page
+        || `https://${l.code}.wikipedia.org/wiki/${encodeURIComponent(person.sitelinks[l.code])}`;
+      bioLink.style.display = 'inline-flex';
+      bioSource.textContent = `Wikipedia · ${l.code.toUpperCase()}`;
+      return;
+    }
+  }
+
+  bioExtract.innerHTML = '<p style="font-style:italic;color:var(--ink-mute)">Sin biografía disponible en Wikipedia para esta persona.</p>';
+  bioLink.style.display = 'none';
+  bioSource.textContent = 'Wikipedia';
+}
+
 // ============================================================
 // SEARCH UI
 // ============================================================
@@ -875,6 +1021,9 @@ async function selectPerson(qid) {
     renderLangs();
     renderSliders();
     renderSignature();
+    document.getElementById('below-map').classList.add('on');
+    populateWdCard(person);
+    populateBioCard(person);
   } catch (e) {
     const msg = escapeHtml(e.message || '');
     const isNetwork = /Failed to fetch|NetworkError|Load failed/i.test(msg);
@@ -997,6 +1146,7 @@ document.getElementById('btn-cancel').addEventListener('click', () => {
   current = null;
   document.getElementById('panel-detail').style.display = 'none';
   document.getElementById('panel-emotions').style.display = 'none';
+  document.getElementById('below-map').classList.remove('on');
 });
 
 document.getElementById('btn-submit').addEventListener('click', () => {
@@ -1018,6 +1168,7 @@ document.getElementById('btn-submit').addEventListener('click', () => {
   current = null;
   document.getElementById('panel-detail').style.display = 'none';
   document.getElementById('panel-emotions').style.display = 'none';
+  document.getElementById('below-map').classList.remove('on');
   document.getElementById('note').value = '';
 });
 
