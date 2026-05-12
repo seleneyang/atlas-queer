@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queer Atlas — cartografía afectiva de biografías queer</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Elms+Sans:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<style>
+:root {
+  --bg: #FFFFFF;
+  --bg-soft: #F4F6F5;
+  --surface: #FFFFFF;
+  --ink: #050609;
+  --ink-soft: #2A2D2E;
+  --ink-mute: #717477;
+  --olive: #646536;
+  --teal: #0C7489;
+  --amber: #FFB30F;
+  --sage: #B0C7BD;
+  --sage-soft: #DCE6E1;
+  --rule: #DCE6E1;
+
+  --display: 'Elms Sans', system-ui, sans-serif;
+  --body: 'Quicksand', system-ui, sans-serif;
+
+  --e-adm: #FFB30F;
+  --e-deu: #646536;
+  --e-rab: #C24B1B;
+  --e-ter: #B0C7BD;
+  --e-ins: #0C7489;
+  --e-due: #050609;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+  font-feature-settings: 'tnum' off;
+}
+
+.page { max-width: 1240px; margin: 0 auto; padding: 28px 32px 64px; }
+
+header.masthead {
+  background: var(--ink);
+  color: #FFFFFF;
+  padding: 36px 40px;
+  margin-bottom: 28px;
+  border-left: 6px solid var(--amber);
+  border-radius: 4px;
+}
+.kicker {
+  font-family: var(--body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 14px;
+}
+h1 {
+  font-family: var(--display);
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  margin-bottom: 14px;
+  color: #FFFFFF;
+}
+.lede {
+  font-family: var(--body);
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--sage);
+  max-width: 60ch;
+  line-height: 1.55;
+}
+
+.event-card {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  background: var(--sage);
+  border-left: 6px solid var(--amber);
+  border-radius: 4px;
+  padding: 22px 28px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.event-card .ec-content { flex: 1; min-width: 280px; }
+.event-card .ec-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--olive);
+  margin-bottom: 6px;
+}
+.event-card h3 {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.event-card p {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-bottom: 0;
+  max-width: 56ch;
+  line-height: 1.55;
+}
+.event-card a.ec-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ink);
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 13px 20px;
+  border-radius: 3px;
+  text-decoration: none;
+  flex-shrink: 0;
+  font-family: var(--body);
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.event-card a.ec-link:hover { background: var(--amber); color: var(--ink); }
+.event-card a.ec-link:active { transform: translateY(1px); }
+.event-card a.ec-link .arrow { font-size: 18px; line-height: 1; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin: 0 0 28px;
+  padding: 20px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.stat-num {
+  font-family: var(--display);
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  font-feature-settings: 'tnum' on;
+  color: var(--olive);
+}
+.stat-num.warn { color: var(--amber); }
+.stat-num.danger { color: var(--teal); }
+.stat-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-top: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 28px;
+}
+@media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+.col-controls { display: flex; flex-direction: column; gap: 16px; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 22px;
+}
+.panel h2 {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 24px;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.panel .panel-sub {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--olive);
+  margin-bottom: 14px;
+}
+
+input[type="text"], input[type="search"], textarea {
+  width: 100%;
+  padding: 11px 13px;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font: 500 14px/1.4 var(--body);
+  color: var(--ink);
+}
+input[type="text"]:focus, input[type="search"]:focus, textarea:focus {
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
+  border-color: transparent;
+}
+textarea { resize: vertical; min-height: 64px; }
+
+.search-wrap { position: relative; }
+.suggest {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--rule);
+  max-height: 280px; overflow-y: auto;
+  z-index: 1000; display: none;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(5, 6, 9, 0.08);
+}
+.suggest.open { display: block; }
+.suggest-item {
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+}
+.suggest-item:last-child { border-bottom: 0; }
+.suggest-item:hover, .suggest-item.active { background: var(--sage-soft); }
+.suggest-item .si-name { font-weight: 600; }
+.suggest-item .si-desc { font-size: 12px; color: var(--ink-mute); margin-top: 2px; font-weight: 500; }
+
+.detail {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px;
+  background: var(--bg-soft);
+  border-left: 4px solid var(--amber);
+  margin: 14px 0;
+  border-radius: 0 4px 4px 0;
+}
+.detail.empty { color: var(--ink-mute); display: block; padding: 14px 16px; border-left-color: var(--rule); }
+.portrait {
+  width: 64px; height: 64px;
+  background: var(--sage);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 22px; font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  border-radius: 4px;
+}
+.portrait img { width: 100%; height: 100%; object-fit: cover; }
+.d-name { font-family: var(--display); font-size: 22px; font-weight: 500; line-height: 1.1; color: var(--ink); }
+.d-meta { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
+.d-desc { font-size: 13px; color: var(--olive); margin-top: 6px; font-weight: 500; }
+.d-qid {
+  display: inline-block; margin-top: 6px;
+  font-family: ui-monospace, 'SF Mono', Monaco, monospace;
+  font-size: 11px; color: var(--ink-mute);
+}
+
+.sliders { margin: 8px 0 4px; }
+
+.pain-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--olive);
+}
+.pain-section .pain-label {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 2px;
+  letter-spacing: -0.005em;
+}
+.pain-section .pain-sub {
+  font-size: 12px;
+  color: var(--olive);
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-style: italic;
+}
+.pain-section .sliders { margin-top: 4px; }
+.pain-section .slider { margin: 6px 0; }
+.slider {
+  display: grid;
+  grid-template-columns: 96px 1fr 28px;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.s-label { font-weight: 700; color: var(--ink); }
+.s-input { width: 100%; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; height: 18px; }
+.s-input::-webkit-slider-runnable-track { height: 4px; background: var(--sage-soft); border-radius: 2px; }
+.s-input::-moz-range-track { height: 4px; background: var(--sage-soft); border-radius: 2px; }
+.s-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--c, var(--ink)); border-radius: 50%; margin-top: -6px; cursor: pointer; border: 2px solid var(--ink); box-sizing: border-box; }
+.s-input::-moz-range-thumb { width: 16px; height: 16px; background: var(--c, var(--ink)); border-radius: 50%; border: 2px solid var(--ink); cursor: pointer; }
+.s-num { text-align: right; font-feature-settings: 'tnum' on; color: var(--olive); font-size: 14px; font-weight: 700; }
+
+.langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.lang {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; border-radius: 3px;
+}
+.lang.yes { background: var(--sage); color: var(--ink); }
+.lang.no { background: var(--amber); color: var(--ink); }
+.lang.check { background: var(--sage-soft); color: var(--ink-mute); }
+
+.lang-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.btn-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 11px; font-size: 12px; font-weight: 700;
+  background: transparent; border: 1.5px solid var(--ink); color: var(--ink);
+  border-radius: 3px; text-decoration: none; cursor: pointer;
+  font-family: var(--body);
+  transition: all 0.15s;
+}
+.btn-link:hover { background: var(--amber); border-color: var(--amber); }
+
+.row { display: flex; gap: 8px; align-items: center; }
+.row > * { flex: 1; }
+
+.btn {
+  padding: 13px 20px;
+  background: var(--amber);
+  color: var(--ink);
+  border: 0; border-radius: 3px;
+  font: 700 13px/1 var(--body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.btn:hover { background: var(--ink); color: var(--amber); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { background: var(--sage-soft); color: var(--ink-mute); cursor: not-allowed; }
+.btn.secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+.btn.secondary:hover { background: var(--ink); color: #FFFFFF; }
+
+.signature { background: var(--bg-soft); padding: 14px; text-align: center; border-radius: 4px; }
+.signature svg { width: 160px; height: 160px; display: block; margin: 0 auto; }
+.sig-cap { font-size: 11px; color: var(--olive); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 8px; font-weight: 700; }
+
+#map { width: 100%; height: 480px; background: var(--sage-soft); border: 1px solid var(--sage); border-radius: 4px; }
+
+.map-toggle {
+  display: inline-flex;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.map-toggle button {
+  background: transparent;
+  border: 0;
+  padding: 9px 16px;
+  font: 700 12px/1 var(--body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+}
+.map-toggle button.on { background: var(--ink); color: var(--amber); }
+
+.timeline-wrap { display: none; height: 480px; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 24px; overflow-y: auto; }
+.timeline-wrap.on { display: block; }
+.timeline-wrap h3 { font-family: var(--display); font-size: 24px; font-weight: 500; margin-bottom: 4px; color: var(--ink); }
+.timeline-wrap .tl-sub { font-size: 11px; color: var(--olive); margin-bottom: 18px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.tl-axis { position: relative; padding: 24px 0; }
+.tl-line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--sage); }
+.tl-dot {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 12px; height: 12px; border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--ink);
+}
+.tl-decades { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-mute); margin-top: 18px; font-weight: 600; }
+
+.gallery {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule);
+}
+.gallery h2 {
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.gallery .g-sub { font-size: 11px; color: var(--olive); margin-bottom: 22px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 18px;
+  display: flex; flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--teal); }
+.card .c-sig { width: 100%; aspect-ratio: 1; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; border-radius: 3px; }
+.card .c-sig svg { width: 100%; height: 100%; }
+.card .c-name { font-family: var(--display); font-size: 19px; font-weight: 500; line-height: 1.15; color: var(--ink); }
+.card .c-meta { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; font-weight: 600; }
+.card .c-langs { display: flex; gap: 4px; }
+.card .c-langs span { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 2px; letter-spacing: 0.04em; }
+.card .c-langs .y { background: var(--sage); color: var(--ink); }
+.card .c-langs .n { background: var(--amber); color: var(--ink); }
+.card .c-del {
+  position: absolute; top: 8px; right: 8px;
+  width: 22px; height: 22px;
+  border: 0; background: transparent;
+  color: var(--ink-mute); cursor: pointer;
+  font-size: 18px; line-height: 1;
+}
+.card .c-del:hover { color: var(--teal); }
+
+.empty-gallery {
+  padding: 40px;
+  text-align: center;
+  color: var(--ink-mute);
+  border: 1.5px dashed var(--sage);
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.suggested-pop {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--sage-soft);
+  border: 1px dashed var(--teal);
+  border-radius: 4px;
+}
+.suggested-pop .sp-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+.sp-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp-item {
+  padding: 6px 11px; font-size: 12px; font-weight: 600;
+  background: var(--surface); border: 1px solid var(--ink); color: var(--ink);
+  cursor: pointer; border-radius: 3px;
+  font-family: var(--body);
+  transition: all 0.15s;
+}
+.sp-item:hover { background: var(--teal); color: #FFFFFF; border-color: var(--teal); }
+.sp-meta { font-size: 11px; color: var(--ink-mute); margin-top: 10px; font-weight: 500; }
+.sp-meta code { font-family: ui-monospace, monospace; font-size: 10px; background: var(--surface); padding: 1px 5px; border-radius: 2px; }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: var(--amber);
+  padding: 13px 22px; border-radius: 3px;
+  font-size: 13px; font-weight: 600;
+  z-index: 10000;
+  opacity: 0; transition: opacity 0.2s;
+  border-left: 4px solid var(--amber);
+}
+.toast.show { opacity: 1; }
+
+footer {
+  margin-top: 56px;
+  padding-top: 22px;
+  border-top: 2px solid var(--ink);
+  font-size: 12px;
+  color: var(--ink-mute);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-weight: 500;
+}
+footer a { color: var(--teal); }
+
+.spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid var(--sage-soft);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.leaflet-popup-content { font-family: var(--body); font-size: 13px; }
+.leaflet-popup-content strong { font-family: var(--display); font-size: 16px; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<header class="masthead">
+  <div class="kicker">Cartografía afectiva · v0.1 prototipo</div>
+  <h1>Queer Atlas</h1>
+  <p class="lede">Mapeá a las figuras queer que te importan. Anclalas a un lugar. Decí qué le agradecés. Si Wikipedia no las tiene, el atlas te lleva al editor.</p>
+</header>
+
+<aside class="event-card">
+  <div class="ec-content">
+    <div class="ec-kicker">Wikiproyecto:LGBT · Wikipedia en español</div>
+    <h3>Evento del Mes</h3>
+    <p>Cada mes la comunidad elige un tema, país o categoría y crea biografías queer nuevas. Es donde nace la lista que alimenta este atlas — sumate al desafío activo.</p>
+  </div>
+  <a class="ec-link" href="https://es.wikipedia.org/wiki/Wikiproyecto:LGBT/Evento_del_mes" target="_blank" rel="noopener">
+    Ir al evento <span class="arrow">→</span>
+  </a>
+</aside>
+
+<div class="stats">
+  <div><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Personas mapeadas</div></div>
+  <div><div class="stat-num warn" id="st-es">0</div><div class="stat-lbl">Sin artículo en español</div></div>
+  <div><div class="stat-num warn" id="st-en">0</div><div class="stat-lbl">Sin artículo en inglés</div></div>
+  <div><div class="stat-num danger" id="st-none">0</div><div class="stat-lbl">Sin artículo en ningún idioma</div></div>
+</div>
+
+<div class="grid">
+
+  <div class="col-controls">
+
+    <div class="panel">
+      <h2>Buscar una figura</h2>
+      <p class="panel-sub">Wikidata · escribí el nombre y elegí</p>
+      <div class="search-wrap">
+        <input type="search" id="search" placeholder="ej. Lohana Berkins, Pedro Lemebel, Marsha Johnson…" autocomplete="off">
+        <div class="suggest" id="suggest"></div>
+      </div>
+
+      <div class="suggested-pop">
+        <div class="sp-title">Inspirado en el Wikiproyecto:LGBT</div>
+        <div class="sp-list" id="sp-list"></div>
+        <div class="sp-meta">Listas curadas por la comunidad hispanohablante en <code>Wikiproyecto:LGBT/Solicitados</code>.</div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-detail" style="display:none">
+      <h2>La persona</h2>
+      <p class="panel-sub">Datos desde Wikidata</p>
+      <div class="detail" id="detail"></div>
+
+      <div style="font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-mute);margin:14px 0 6px">Artículo en Wikipedia</div>
+      <div class="langs" id="langs"></div>
+      <div class="lang-actions" id="lang-actions"></div>
+    </div>
+
+    <div class="panel" id="panel-emotions" style="display:none">
+      <h2>Lo que le agradezco</h2>
+      <p class="panel-sub">Marcá lo que esta figura te dio · escala 0–10</p>
+
+      <div class="sliders" id="sliders"></div>
+
+      <div class="pain-section">
+        <div class="pain-label">Lo que duele</div>
+        <div class="pain-sub">Cuando agradecer no alcanza.</div>
+        <div class="sliders" id="sliders-pain"></div>
+      </div>
+
+      <div class="signature">
+        <svg id="signature" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="sig-cap">Marca de gratitud</div>
+      </div>
+
+      <div style="margin:14px 0 6px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--olive)">Por qué la querés agradecer</div>
+      <textarea id="note" placeholder="Un recuerdo, una historia, una línea que querés dejar… opcional."></textarea>
+
+      <div style="margin-top:14px" class="row">
+        <button class="btn secondary" id="btn-cancel">Cancelar</button>
+        <button class="btn" id="btn-submit">Sumar al atlas</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div>
+    <div class="map-toggle">
+      <button class="on" data-view="map">Mapa</button>
+      <button data-view="timeline">Línea de tiempo</button>
+    </div>
+    <div id="map"></div>
+    <div class="timeline-wrap" id="timeline">
+      <h3>Aparición en Wikipedia</h3>
+      <div class="tl-sub">Personas mapeadas según década de nacimiento</div>
+      <div class="tl-axis" id="tl-axis" style="height:120px"><div class="tl-line"></div></div>
+      <div class="tl-decades" id="tl-decades"></div>
+    </div>
+  </div>
+
+</div>
+
+<section class="gallery">
+  <h2>Galería colectiva</h2>
+  <div class="g-sub">Las marcas de gratitud se acumulan aquí</div>
+  <div id="gallery-content"></div>
+</section>
+
+<footer>
+  <div>Queer Atlas · prototipo en construcción. Datos en LocalStorage (no se envían a ningún servidor).</div>
+  <div>Construido en diálogo con el Wikiproyecto:LGBT · Wikipedia en español</div>
+</footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const EMOTIONS = [
+  { key: 'coraje',      label: 'Coraje',      color: '#FFB30F' },
+  { key: 'visibilidad', label: 'Visibilidad', color: '#0C7489' },
+  { key: 'comunidad',   label: 'Comunidad',   color: '#646536' },
+  { key: 'lenguaje',    label: 'Lenguaje',    color: '#050609' },
+  { key: 'arte',        label: 'Arte',        color: '#C24B1B' },
+  { key: 'ternura',     label: 'Ternura',     color: '#B0C7BD' },
+];
+const PAINS = [
+  { key: 'rabia',  label: 'Rabia',  color: '#C24B1B' },
+  { key: 'duelo',  label: 'Duelo',  color: '#050609' },
+];
+const ALL_AXES = [...EMOTIONS, ...PAINS];
+const LANGS = [
+  { code: 'es', label: 'ES', site: 'eswiki' },
+  { code: 'en', label: 'EN', site: 'enwiki' },
+  { code: 'fr', label: 'FR', site: 'frwiki' },
+  { code: 'pt', label: 'PT', site: 'ptwiki' },
+];
+
+// Semilla curada inspirada en el Wikiproyecto:LGBT de Wikipedia en español
+// (Solicitados / Eventos del mes recientes). Pre-cargada como ejemplo.
+const SEED = [
+  { q: 'Q6669728',  label: 'Lohana Berkins' },
+  { q: 'Q450064',   label: 'Marsha P. Johnson' },
+  { q: 'Q236936',   label: 'Sylvia Rivera' },
+  { q: 'Q21062537', label: 'Diana Sacayán' },
+  { q: 'Q381178',   label: 'Pedro Lemebel' },
+  { q: 'Q9078562',  label: 'Susy Shock' },
+  { q: 'Q272551',   label: 'Audre Lorde' },
+  { q: 'Q310791',   label: 'Reinaldo Arenas' },
+  { q: 'Q438498',   label: 'Néstor Perlongher' },
+  { q: 'Q5994816',  label: 'Lia García' },
+];
+
+const STORAGE_KEY = 'queer_atlas_entries_v2';
+
+// ============================================================
+// STATE
+// ============================================================
+let current = null;   // person being edited
+let entries = loadEntries();
+let map, markers = {};
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function saveEntries() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+// ============================================================
+// WIKIDATA
+// ============================================================
+async function wdSearch(query) {
+  const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(query)}&language=es&uselang=es&type=item&limit=8&format=json&origin=*`;
+  const r = await fetch(url);
+  const d = await r.json();
+  return d.search || [];
+}
+
+async function wdGetEntity(qid) {
+  const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&format=json&origin=*`;
+  const r = await fetch(url);
+  const d = await r.json();
+  return d.entities[qid];
+}
+
+// Get coordinates from a Wikidata place entity (P625)
+async function wdGetPlaceCoords(qid) {
+  if (!qid) return null;
+  try {
+    const ent = await wdGetEntity(qid);
+    const coord = ent?.claims?.P625?.[0]?.mainsnak?.datavalue?.value;
+    if (coord) return { lat: coord.latitude, lng: coord.longitude };
+  } catch (e) {}
+  return null;
+}
+
+// Get a Commons image URL from a filename
+function commonsImageUrl(filename, width = 200) {
+  if (!filename) return null;
+  const clean = filename.replace(/ /g, '_');
+  return `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(clean)}?width=${width}`;
+}
+
+// Parse a Wikidata entity for our purposes
+async function parsePerson(qid) {
+  const ent = await wdGetEntity(qid);
+  if (!ent) return null;
+
+  const labels = ent.labels || {};
+  const descs = ent.descriptions || {};
+  const claims = ent.claims || {};
+  const sitelinks = ent.sitelinks || {};
+
+  const name = labels.es?.value || labels.en?.value || qid;
+  const description = descs.es?.value || descs.en?.value || '';
+
+  // Dates
+  const birth = claims.P569?.[0]?.mainsnak?.datavalue?.value?.time;
+  const death = claims.P570?.[0]?.mainsnak?.datavalue?.value?.time;
+  const birthYear = birth ? parseInt(birth.slice(1, 5)) : null;
+  const deathYear = death ? parseInt(death.slice(1, 5)) : null;
+
+  // Place of birth -> coords
+  const pobQid = claims.P19?.[0]?.mainsnak?.datavalue?.value?.id;
+  const pobLabel = pobQid ? (await wdGetLabel(pobQid)) : null;
+  let coords = await wdGetPlaceCoords(pobQid);
+
+  // Fallback: place of death
+  if (!coords) {
+    const podQid = claims.P20?.[0]?.mainsnak?.datavalue?.value?.id;
+    if (podQid) coords = await wdGetPlaceCoords(podQid);
+  }
+  // Fallback: country of citizenship
+  if (!coords) {
+    const cocQid = claims.P27?.[0]?.mainsnak?.datavalue?.value?.id;
+    if (cocQid) coords = await wdGetPlaceCoords(cocQid);
+  }
+
+  const image = claims.P18?.[0]?.mainsnak?.datavalue?.value;
+
+  // Sitelinks (article existence per language)
+  const sitelinkMap = {};
+  LANGS.forEach(l => {
+    sitelinkMap[l.code] = sitelinks[l.site]?.title || null;
+  });
+
+  return {
+    qid,
+    name,
+    description,
+    birthYear, deathYear,
+    pobLabel,
+    coords,
+    image,
+    sitelinks: sitelinkMap,
+  };
+}
+
+const labelCache = {};
+async function wdGetLabel(qid) {
+  if (labelCache[qid]) return labelCache[qid];
+  try {
+    const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&props=labels&languages=es|en&format=json&origin=*`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const ent = d.entities[qid];
+    const label = ent.labels?.es?.value || ent.labels?.en?.value || qid;
+    labelCache[qid] = label;
+    return label;
+  } catch (e) { return qid; }
+}
+
+// ============================================================
+// SEARCH UI
+// ============================================================
+const searchInput = document.getElementById('search');
+const suggest = document.getElementById('suggest');
+let searchTimer = null;
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = searchInput.value.trim();
+  if (q.length < 2) { suggest.classList.remove('open'); suggest.innerHTML = ''; return; }
+  searchTimer = setTimeout(() => doSearch(q), 280);
+});
+
+async function doSearch(q) {
+  suggest.innerHTML = '<div class="suggest-item" style="cursor:default"><span class="spinner"></span> Buscando…</div>';
+  suggest.classList.add('open');
+  try {
+    const results = await wdSearch(q);
+    if (!results.length) {
+      suggest.innerHTML = '<div class="suggest-item" style="cursor:default;color:var(--ink-mute);font-style:italic">Sin resultados.</div>';
+      return;
+    }
+    suggest.innerHTML = results.map(r => `
+      <div class="suggest-item" data-q="${r.id}">
+        <div class="si-name">${escapeHtml(r.label)}</div>
+        <div class="si-desc">${escapeHtml(r.description || '—')} · <code>${r.id}</code></div>
+      </div>
+    `).join('');
+    suggest.querySelectorAll('.suggest-item').forEach(el => {
+      el.addEventListener('click', () => selectPerson(el.dataset.q));
+    });
+  } catch (e) {
+    suggest.innerHTML = '<div class="suggest-item" style="cursor:default;color:var(--amber)">Error en la búsqueda.</div>';
+  }
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-wrap')) suggest.classList.remove('open');
+});
+
+// ============================================================
+// SEED / Wikiproyecto:LGBT pre-loaded
+// ============================================================
+const spList = document.getElementById('sp-list');
+SEED.forEach(s => {
+  const el = document.createElement('span');
+  el.className = 'sp-item';
+  el.textContent = s.label;
+  el.dataset.q = s.q;
+  el.addEventListener('click', () => selectPerson(s.q));
+  spList.appendChild(el);
+});
+
+// ============================================================
+// SELECT PERSON
+// ============================================================
+async function selectPerson(qid) {
+  suggest.classList.remove('open');
+  searchInput.value = '';
+
+  document.getElementById('panel-detail').style.display = 'block';
+  document.getElementById('panel-emotions').style.display = 'block';
+  document.getElementById('detail').innerHTML = '<div style="padding:8px 0"><span class="spinner"></span> Cargando…</div>';
+  document.getElementById('langs').innerHTML = '<span class="lang check">…</span>';
+  document.getElementById('lang-actions').innerHTML = '';
+
+  try {
+    const person = await parsePerson(qid);
+    if (!person) throw new Error('No data');
+    current = {
+      ...person,
+      emotions: Object.fromEntries(ALL_AXES.map(e => [e.key, 0])),
+      note: '',
+    };
+    renderDetail();
+    renderLangs();
+    renderSliders();
+    renderSignature();
+  } catch (e) {
+    const msg = escapeHtml(e.message || '');
+    const isNetwork = /Failed to fetch|NetworkError|Load failed/i.test(msg);
+    const hint = isNetwork
+      ? '<div style="margin-top:10px;padding:10px 12px;background:var(--bg-soft);border-radius:3px;font-size:12px;color:var(--ink-soft);line-height:1.55">Si abriste el archivo directo (file://), el navegador suele bloquear las APIs externas. Probá servirlo con un HTTP local:<br><code style="display:inline-block;margin-top:6px;padding:4px 8px;background:var(--surface);border:1px solid var(--rule);font-family:ui-monospace,monospace;font-size:11px;border-radius:3px">python3 -m http.server</code> y abrí <code style="font-family:ui-monospace,monospace;font-size:11px">http://localhost:8000</code></div>'
+      : '';
+    document.getElementById('detail').innerHTML = `<div style="color:var(--amber);font-weight:600">No pude cargar esta persona.${msg ? ' ' + msg + '.' : ''}</div>${hint}`;
+  }
+}
+
+function renderDetail() {
+  const p = current;
+  const portrait = p.image
+    ? `<img src="${commonsImageUrl(p.image, 200)}" alt="${escapeHtml(p.name)}">`
+    : initials(p.name);
+  const lifespan = (p.birthYear || p.deathYear)
+    ? `${p.birthYear ?? '?'} – ${p.deathYear ?? ''}`.trim()
+    : '';
+  const place = p.pobLabel ? ` · ${escapeHtml(p.pobLabel)}` : '';
+  document.getElementById('detail').innerHTML = `
+    <div class="portrait">${portrait}</div>
+    <div>
+      <div class="d-name">${escapeHtml(p.name)}</div>
+      <div class="d-meta">${lifespan}${place}</div>
+      ${p.description ? `<div class="d-desc">${escapeHtml(p.description)}</div>` : ''}
+      <div class="d-qid">${p.qid}</div>
+    </div>
+  `;
+}
+
+function renderLangs() {
+  const p = current;
+  const langsEl = document.getElementById('langs');
+  const actionsEl = document.getElementById('lang-actions');
+
+  langsEl.innerHTML = LANGS.map(l => {
+    const exists = !!p.sitelinks[l.code];
+    return `<span class="lang ${exists ? 'yes' : 'no'}">${l.label} ${exists ? '✓' : '✗'}</span>`;
+  }).join('');
+
+  const missing = LANGS.filter(l => !p.sitelinks[l.code]);
+  if (missing.length === 0) {
+    actionsEl.innerHTML = '<div style="font-size:12px;color:var(--ink-mute);font-style:italic">Tiene artículo en todos los idiomas verificados.</div>';
+  } else {
+    actionsEl.innerHTML = missing.map(l => {
+      const url = `https://${l.code}.wikipedia.org/w/index.php?title=${encodeURIComponent(p.name)}&action=edit&redlink=1`;
+      return `<a class="btn-link" href="${url}" target="_blank" rel="noopener">+ Crear en ${l.label}</a>`;
+    }).join('');
+  }
+}
+
+function renderSliders() {
+  const sliderHTML = (axis) => `
+    <div class="slider">
+      <label class="s-label" for="sl-${axis.key}">${axis.label}</label>
+      <input type="range" min="0" max="10" step="1" value="${current.emotions[axis.key]}" id="sl-${axis.key}" class="s-input" style="--c:${axis.color}">
+      <span class="s-num" id="sn-${axis.key}">${current.emotions[axis.key]}</span>
+    </div>
+  `;
+  document.getElementById('sliders').innerHTML = EMOTIONS.map(sliderHTML).join('');
+  document.getElementById('sliders-pain').innerHTML = PAINS.map(sliderHTML).join('');
+  ALL_AXES.forEach(e => {
+    const input = document.getElementById('sl-' + e.key);
+    const num = document.getElementById('sn-' + e.key);
+    input.addEventListener('input', () => {
+      current.emotions[e.key] = parseInt(input.value);
+      num.textContent = input.value;
+      renderSignature();
+    });
+  });
+}
+
+// ============================================================
+// SIGNATURE (generative SVG based on emotion values)
+// ============================================================
+function renderSignature(targetSvg = null, emotionsOverride = null) {
+  const svg = targetSvg || document.getElementById('signature');
+  const ems = emotionsOverride || current.emotions;
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const cx = 100, cy = 100;
+
+  // Each axis is one translucent circle whose radius scales with value
+  ALL_AXES.forEach((e, i) => {
+    const v = ems[e.key] || 0;
+    if (v === 0) return;
+    const angle = (i / ALL_AXES.length) * Math.PI * 2 - Math.PI / 2;
+    const r = 18 + v * 5;
+    const offset = 12 + (10 - v) * 1.4;
+    const x = cx + Math.cos(angle) * offset;
+    const y = cy + Math.sin(angle) * offset;
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', x);
+    c.setAttribute('cy', y);
+    c.setAttribute('r', r);
+    c.setAttribute('fill', e.color);
+    c.setAttribute('opacity', 0.42);
+    svg.appendChild(c);
+  });
+
+  // Anchor dot at center
+  const dot = document.createElementNS(ns, 'circle');
+  dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
+  dot.setAttribute('r', 2); dot.setAttribute('fill', '#050609');
+  svg.appendChild(dot);
+}
+
+function dominantEmotionColor(ems) {
+  let max = 0, color = '#888';
+  ALL_AXES.forEach(e => {
+    if ((ems[e.key] || 0) > max) { max = ems[e.key]; color = e.color; }
+  });
+  return color;
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+document.getElementById('btn-cancel').addEventListener('click', () => {
+  current = null;
+  document.getElementById('panel-detail').style.display = 'none';
+  document.getElementById('panel-emotions').style.display = 'none';
+});
+
+document.getElementById('btn-submit').addEventListener('click', () => {
+  if (!current) return;
+  if (!current.coords) {
+    showToast('No tenemos coordenadas para esta persona — agregale ubicación manualmente en una versión futura.');
+    return;
+  }
+  current.note = document.getElementById('note').value.trim();
+  current.submitted_at = new Date().toISOString();
+
+  // Dedupe by qid
+  entries = entries.filter(e => e.qid !== current.qid);
+  entries.push({ ...current });
+  saveEntries();
+  refreshAll();
+
+  showToast(`${current.name} sumada al atlas.`);
+  current = null;
+  document.getElementById('panel-detail').style.display = 'none';
+  document.getElementById('panel-emotions').style.display = 'none';
+  document.getElementById('note').value = '';
+});
+
+// ============================================================
+// MAP
+// ============================================================
+function initMap() {
+  if (typeof L === 'undefined') {
+    document.getElementById('map').innerHTML =
+      '<div style="padding:32px;color:var(--ink-mute);text-align:center;font-size:13px;line-height:1.6">No se pudo cargar el mapa.<br>Revisá la conexión o probá recargar.<br><span style="font-size:11px;color:var(--ink-mute);font-family:monospace">Leaflet no disponible.</span></div>';
+    return;
+  }
+  map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([10, -30], 2);
+  L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
+    attribution: '<a href="https://wikimediafoundation.org/wiki/Maps_Terms_of_Use" target="_blank">Wikimedia Maps</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(map);
+}
+
+function renderMap() {
+  if (!map) return;
+  Object.values(markers).forEach(m => map.removeLayer(m));
+  markers = {};
+  entries.forEach(e => {
+    if (!e.coords) return;
+    const color = dominantEmotionColor(e.emotions);
+    const icon = L.divIcon({
+      className: 'qa-pin',
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #050609;box-shadow:0 1px 3px rgba(5,6,9,0.3)"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [9, 9],
+    });
+    const m = L.marker([e.coords.lat, e.coords.lng], { icon }).addTo(map);
+    const langStr = LANGS.map(l => `${l.label}${e.sitelinks[l.code] ? '✓' : '✗'}`).join('  ');
+    m.bindPopup(`
+      <strong>${escapeHtml(e.name)}</strong><br>
+      <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
+      <span style="font-size:11px;font-family:monospace;color:#888">${e.qid}</span><br>
+      <span style="font-size:11px;letter-spacing:0.04em">${langStr}</span>
+    `);
+    markers[e.qid] = m;
+  });
+}
+
+// ============================================================
+// TIMELINE
+// ============================================================
+function renderTimeline() {
+  const axis = document.getElementById('tl-axis');
+  const decadesEl = document.getElementById('tl-decades');
+  axis.innerHTML = '<div class="tl-line"></div>';
+  decadesEl.innerHTML = '';
+
+  const withYear = entries.filter(e => e.birthYear);
+  if (!withYear.length) {
+    axis.innerHTML += '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--ink-mute);font-style:italic;font-size:13px">Aún sin datos.</div>';
+    return;
+  }
+  const years = withYear.map(e => e.birthYear);
+  const minY = Math.floor(Math.min(...years) / 10) * 10;
+  const maxY = Math.ceil(Math.max(...years) / 10) * 10;
+  const range = Math.max(maxY - minY, 10);
+
+  withYear.forEach(e => {
+    const pct = ((e.birthYear - minY) / range) * 100;
+    const dot = document.createElement('div');
+    dot.className = 'tl-dot';
+    dot.style.left = pct + '%';
+    dot.style.background = dominantEmotionColor(e.emotions);
+    dot.title = `${e.name} (${e.birthYear})`;
+    axis.appendChild(dot);
+  });
+
+  // Decade labels
+  for (let y = minY; y <= maxY; y += 10) {
+    const span = document.createElement('span');
+    span.textContent = y + 's';
+    decadesEl.appendChild(span);
+  }
+}
+
+// ============================================================
+// VIEW TOGGLE
+// ============================================================
+document.querySelectorAll('.map-toggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.map-toggle button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    const v = b.dataset.view;
+    if (v === 'map') {
+      document.getElementById('map').style.display = 'block';
+      document.getElementById('timeline').classList.remove('on');
+      setTimeout(() => { if (map) map.invalidateSize(); }, 50);
+    } else {
+      document.getElementById('map').style.display = 'none';
+      document.getElementById('timeline').classList.add('on');
+      renderTimeline();
+    }
+  });
+});
+
+// ============================================================
+// GALLERY
+// ============================================================
+function renderGallery() {
+  const wrap = document.getElementById('gallery-content');
+  if (!entries.length) {
+    wrap.innerHTML = '<div class="empty-gallery">Todavía no hay personas en el atlas. Buscá una arriba o usá uno de los nombres sugeridos.</div>';
+    return;
+  }
+  const cards = entries.slice().reverse().map(e => {
+    const sigId = 'gsig-' + e.qid;
+    const langs = LANGS.map(l => `<span class="${e.sitelinks[l.code] ? 'y' : 'n'}">${l.label}</span>`).join('');
+    return `
+      <div class="card">
+        <button class="c-del" title="Quitar" data-q="${e.qid}">×</button>
+        <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
+        <div class="c-name">${escapeHtml(e.name)}</div>
+        <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
+        <div class="c-langs">${langs}</div>
+      </div>
+    `;
+  }).join('');
+  wrap.innerHTML = `<div class="cards">${cards}</div>`;
+
+  entries.forEach(e => {
+    const svg = document.getElementById('gsig-' + e.qid);
+    if (svg) renderSignature(svg, e.emotions);
+  });
+  wrap.querySelectorAll('.c-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q = btn.dataset.q;
+      if (confirm('¿Quitar del atlas?')) {
+        entries = entries.filter(e => e.qid !== q);
+        saveEntries();
+        refreshAll();
+      }
+    });
+  });
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function renderStats() {
+  document.getElementById('st-total').textContent = entries.length;
+  document.getElementById('st-es').textContent = entries.filter(e => !e.sitelinks.es).length;
+  document.getElementById('st-en').textContent = entries.filter(e => !e.sitelinks.en).length;
+  document.getElementById('st-none').textContent = entries.filter(e => !LANGS.some(l => e.sitelinks[l.code])).length;
+}
+
+function refreshAll() {
+  renderStats();
+  renderMap();
+  renderGallery();
+  if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function initials(name) {
+  return name.split(/\s+/).slice(0, 2).map(s => s[0] || '').join('').toUpperCase();
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initMap();
+refreshAll();
+</script>
+
+</body>
+</html>
