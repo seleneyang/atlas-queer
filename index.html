@@ -144,7 +144,7 @@ h1 {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 18px;
   margin: 0 0 28px;
   padding: 20px 0;
@@ -184,7 +184,30 @@ h1 {
   border: 1px solid var(--rule);
   border-radius: 4px;
   padding: 22px;
+  position: relative;
 }
+.panel-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--body);
+  font-weight: 700;
+  transition: all 0.15s;
+  z-index: 5;
+}
+.panel-close:hover { background: var(--ink); color: #FFFFFF; }
 .panel h2 {
   font-family: var(--display);
   font-weight: 500;
@@ -459,16 +482,95 @@ textarea { resize: vertical; min-height: 64px; }
 .tl-line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--sage); }
 .tl-dot {
   position: absolute; top: 50%; transform: translate(-50%, -50%);
-  width: 12px; height: 12px; border-radius: 50%;
+  width: 14px; height: 14px; border-radius: 50%;
   cursor: pointer;
   border: 2px solid var(--ink);
+  transition: transform 0.15s;
 }
+.tl-dot:hover { transform: translate(-50%, -50%) scale(1.25); }
+.tl-popup {
+  position: absolute;
+  top: 50%;
+  background: var(--ink);
+  color: #FFFFFF;
+  padding: 14px 16px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  min-width: 200px;
+  max-width: 260px;
+  z-index: 100;
+  transform: translate(-50%, calc(-100% - 14px));
+  border-left: 4px solid var(--amber);
+}
+.tl-popup::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  margin-left: -7px;
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid var(--ink);
+}
+.tlp-name {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  padding-right: 22px;
+  line-height: 1.15;
+}
+.tlp-meta {
+  font-size: 11px;
+  color: var(--sage);
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tlp-link {
+  color: var(--amber);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+.tlp-link:hover { text-decoration: underline; }
+.tlp-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: 0;
+  color: var(--sage);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  font-family: var(--body);
+}
+.tlp-close:hover { color: var(--amber); }
 .tl-decades { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-mute); margin-top: 18px; font-weight: 600; }
 
 .gallery {
   margin-top: 36px;
   padding-top: 28px;
   border-top: 1px solid var(--rule);
+}
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 22px;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.gallery-header > div:first-child {
+  flex: 1;
+  min-width: 220px;
 }
 .gallery h2 {
   font-family: var(--display);
@@ -477,7 +579,36 @@ textarea { resize: vertical; min-height: 64px; }
   margin-bottom: 4px;
   color: var(--ink);
 }
-.gallery .g-sub { font-size: 11px; color: var(--olive); margin-bottom: 22px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.gallery .g-sub { font-size: 11px; color: var(--olive); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; margin: 0; }
+.export-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn-export {
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-export:hover:not(:disabled) {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+.btn-export:active:not(:disabled) { transform: translateY(1px); }
+.btn-export:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -602,6 +733,8 @@ footer a { color: var(--teal); }
   <div><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Personas mapeadas</div></div>
   <div><div class="stat-num warn" id="st-es">0</div><div class="stat-lbl">Sin artículo en español</div></div>
   <div><div class="stat-num warn" id="st-en">0</div><div class="stat-lbl">Sin artículo en inglés</div></div>
+  <div><div class="stat-num warn" id="st-fr">0</div><div class="stat-lbl">Sin artículo en francés</div></div>
+  <div><div class="stat-num warn" id="st-pt">0</div><div class="stat-lbl">Sin artículo en portugués</div></div>
   <div><div class="stat-num danger" id="st-none">0</div><div class="stat-lbl">Sin artículo en ningún idioma</div></div>
 </div>
 
@@ -625,6 +758,7 @@ footer a { color: var(--teal); }
     </div>
 
     <div class="panel" id="panel-detail" style="display:none">
+      <button class="panel-close" id="btn-close-detail" aria-label="Cerrar selección">×</button>
       <h2>La persona</h2>
       <p class="panel-sub">Datos desde Wikidata</p>
       <div class="detail" id="detail"></div>
@@ -671,7 +805,15 @@ footer a { color: var(--teal); }
     <div class="timeline-wrap" id="timeline">
       <h3>Aparición en Wikipedia</h3>
       <div class="tl-sub">Personas mapeadas según década de nacimiento</div>
-      <div class="tl-axis" id="tl-axis" style="height:120px"><div class="tl-line"></div></div>
+      <div class="tl-axis" id="tl-axis" style="height:120px">
+        <div class="tl-line"></div>
+        <div class="tl-popup" id="tl-popup" style="display:none">
+          <button class="tlp-close" aria-label="Cerrar">×</button>
+          <div class="tlp-name" id="tlp-name"></div>
+          <div class="tlp-meta" id="tlp-meta"></div>
+          <a class="tlp-link" id="tlp-link" href="#" target="_blank" rel="noopener">Ver en Wikipedia →</a>
+        </div>
+      </div>
       <div class="tl-decades" id="tl-decades"></div>
     </div>
 
@@ -694,8 +836,16 @@ footer a { color: var(--teal); }
 </div>
 
 <section class="gallery">
-  <h2>Galería colectiva</h2>
-  <div class="g-sub">Las marcas de gratitud se acumulan aquí</div>
+  <div class="gallery-header">
+    <div>
+      <h2>Galería colectiva</h2>
+      <div class="g-sub">Las marcas de gratitud se acumulan aquí</div>
+    </div>
+    <div class="export-actions">
+      <button class="btn-export" id="btn-csv" disabled>↓ Descargar CSV</button>
+      <button class="btn-export" id="btn-json" disabled>↓ JSON</button>
+    </div>
+  </div>
   <div id="gallery-content"></div>
 </section>
 
@@ -1142,12 +1292,18 @@ function dominantEmotionColor(ems) {
 // ============================================================
 // SUBMIT
 // ============================================================
-document.getElementById('btn-cancel').addEventListener('click', () => {
+function clearSelection() {
   current = null;
   document.getElementById('panel-detail').style.display = 'none';
   document.getElementById('panel-emotions').style.display = 'none';
   document.getElementById('below-map').classList.remove('on');
-});
+  document.getElementById('note').value = '';
+  const tlPop = document.getElementById('tl-popup');
+  if (tlPop) tlPop.style.display = 'none';
+}
+
+document.getElementById('btn-cancel').addEventListener('click', clearSelection);
+document.getElementById('btn-close-detail').addEventListener('click', clearSelection);
 
 document.getElementById('btn-submit').addEventListener('click', () => {
   if (!current) return;
@@ -1220,12 +1376,19 @@ function renderMap() {
 function renderTimeline() {
   const axis = document.getElementById('tl-axis');
   const decadesEl = document.getElementById('tl-decades');
-  axis.innerHTML = '<div class="tl-line"></div>';
+
+  // Remove old dots and any empty-state element; preserve line and popup
+  axis.querySelectorAll('.tl-dot, .tl-empty').forEach(el => el.remove());
   decadesEl.innerHTML = '';
+  document.getElementById('tl-popup').style.display = 'none';
 
   const withYear = entries.filter(e => e.birthYear);
   if (!withYear.length) {
-    axis.innerHTML += '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--ink-mute);font-style:italic;font-size:13px">Aún sin datos.</div>';
+    const empty = document.createElement('div');
+    empty.className = 'tl-empty';
+    empty.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--ink-mute);font-style:italic;font-size:13px';
+    empty.textContent = 'Aún sin datos.';
+    axis.appendChild(empty);
     return;
   }
   const years = withYear.map(e => e.birthYear);
@@ -1240,6 +1403,10 @@ function renderTimeline() {
     dot.style.left = pct + '%';
     dot.style.background = dominantEmotionColor(e.emotions);
     dot.title = `${e.name} (${e.birthYear})`;
+    dot.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      showTimelinePopup(e, pct);
+    });
     axis.appendChild(dot);
   });
 
@@ -1250,6 +1417,37 @@ function renderTimeline() {
     decadesEl.appendChild(span);
   }
 }
+
+function showTimelinePopup(entry, leftPct) {
+  const popup = document.getElementById('tl-popup');
+  popup.style.left = leftPct + '%';
+  document.getElementById('tlp-name').textContent = entry.name;
+  document.getElementById('tlp-meta').textContent =
+    `${entry.birthYear ?? '?'} – ${entry.deathYear ?? ''}`.trim();
+
+  const link = document.getElementById('tlp-link');
+  const lang = LANGS.find(l => entry.sitelinks[l.code]);
+  if (lang) {
+    link.href = `https://${lang.code}.wikipedia.org/wiki/${encodeURIComponent(entry.sitelinks[lang.code])}`;
+    link.textContent = `Ver en Wikipedia · ${lang.label} →`;
+    link.style.display = 'inline-flex';
+  } else {
+    link.style.display = 'none';
+  }
+
+  popup.style.display = 'block';
+}
+
+document.getElementById('tl-popup').querySelector('.tlp-close').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('tl-popup').style.display = 'none';
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.tl-dot') && !e.target.closest('.tl-popup')) {
+    document.getElementById('tl-popup').style.display = 'none';
+  }
+});
 
 // ============================================================
 // VIEW TOGGLE
@@ -1318,6 +1516,8 @@ function renderStats() {
   document.getElementById('st-total').textContent = entries.length;
   document.getElementById('st-es').textContent = entries.filter(e => !e.sitelinks.es).length;
   document.getElementById('st-en').textContent = entries.filter(e => !e.sitelinks.en).length;
+  document.getElementById('st-fr').textContent = entries.filter(e => !e.sitelinks.fr).length;
+  document.getElementById('st-pt').textContent = entries.filter(e => !e.sitelinks.pt).length;
   document.getElementById('st-none').textContent = entries.filter(e => !LANGS.some(l => e.sitelinks[l.code])).length;
 }
 
@@ -1325,6 +1525,7 @@ function refreshAll() {
   renderStats();
   renderMap();
   renderGallery();
+  refreshExportButtons();
   if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
 }
 
@@ -1344,6 +1545,117 @@ function showToast(msg) {
   clearTimeout(t._h);
   t._h = setTimeout(() => t.classList.remove('show'), 2600);
 }
+
+// ============================================================
+// EXPORT
+// ============================================================
+async function fetchCreationDate(title, lang) {
+  if (!title) return null;
+  try {
+    const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&titles=${encodeURIComponent(title)}&rvlimit=1&rvdir=newer&rvprop=timestamp&format=json&origin=*`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const d = await r.json();
+    const pages = d.query?.pages || {};
+    const page = Object.values(pages)[0];
+    const ts = page?.revisions?.[0]?.timestamp;
+    return ts ? ts.split('T')[0] : null; // YYYY-MM-DD
+  } catch (e) { return null; }
+}
+
+async function buildExportRows() {
+  const rows = [];
+  for (const entry of entries) {
+    const row = {
+      nombre: entry.name,
+      qid: entry.qid,
+      wikidata_url: `https://www.wikidata.org/wiki/${entry.qid}`,
+      lugar: entry.pobLabel || '',
+      ano_nacimiento: entry.birthYear || '',
+      ano_muerte: entry.deathYear || '',
+      descripcion: entry.description || '',
+    };
+
+    // Fetch creation dates in parallel for the 4 languages
+    const langResults = await Promise.all(LANGS.map(async lang => {
+      const title = entry.sitelinks[lang.code];
+      if (!title) return { lang: lang.code, url: '', created: '' };
+      const created = await fetchCreationDate(title, lang.code);
+      return {
+        lang: lang.code,
+        url: `https://${lang.code}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+        created: created || '',
+      };
+    }));
+
+    langResults.forEach(r => {
+      row[`wikipedia_${r.lang}`] = r.url;
+      row[`creacion_${r.lang}`] = r.created;
+    });
+
+    rows.push(row);
+  }
+  return rows;
+}
+
+function rowsToCSV(rows) {
+  if (!rows.length) return '';
+  const headers = Object.keys(rows[0]);
+  const esc = (v) => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [headers.join(',')];
+  rows.forEach(row => lines.push(headers.map(h => esc(row[h])).join(',')));
+  return '\ufeff' + lines.join('\n'); // BOM for Excel UTF-8 compatibility
+}
+
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function runExport(format) {
+  const csvBtn = document.getElementById('btn-csv');
+  const jsonBtn = document.getElementById('btn-json');
+  const btn = format === 'csv' ? csvBtn : jsonBtn;
+  const originalText = btn.textContent;
+  csvBtn.disabled = true;
+  jsonBtn.disabled = true;
+  btn.textContent = 'Generando…';
+
+  try {
+    const rows = await buildExportRows();
+    const date = new Date().toISOString().split('T')[0];
+    if (format === 'csv') {
+      downloadFile(`queer-atlas-${date}.csv`, rowsToCSV(rows), 'text/csv;charset=utf-8');
+    } else {
+      downloadFile(`queer-atlas-${date}.json`, JSON.stringify(rows, null, 2), 'application/json');
+    }
+    showToast(`${rows.length} ${rows.length === 1 ? 'registro descargado' : 'registros descargados'}.`);
+  } catch (e) {
+    showToast('Error al generar el archivo.');
+  } finally {
+    btn.textContent = originalText;
+    refreshExportButtons();
+  }
+}
+
+function refreshExportButtons() {
+  const disabled = entries.length === 0;
+  document.getElementById('btn-csv').disabled = disabled;
+  document.getElementById('btn-json').disabled = disabled;
+}
+
+document.getElementById('btn-csv').addEventListener('click', () => runExport('csv'));
+document.getElementById('btn-json').addEventListener('click', () => runExport('json'));
 
 // ============================================================
 // INIT
