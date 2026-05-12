@@ -4,7 +4,7 @@
 
 Una plataforma web colaborativa para mapear figuras queer históricas, marcar lo que les agradecemos, y descubrir qué biografías faltan en Wikipedia y Wikidata.
 
-**Demo:** https://[seleneyang].github.io/queer-atlas/
+**Demo:** https://seleneyang.github.io/atlas-queer/
 
 ---
 
