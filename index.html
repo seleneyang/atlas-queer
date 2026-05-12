@@ -640,19 +640,20 @@ const LANGS = [
   { code: 'pt', label: 'PT', site: 'ptwiki' },
 ];
 
-// Semilla curada inspirada en el Wikiproyecto:LGBT de Wikipedia en español
-// (Solicitados / Eventos del mes recientes). Pre-cargada como ejemplo.
+// Lista semilla inspirada en el Wikiproyecto:LGBT de Wikipedia en español.
+// Se resuelven dinámicamente contra Wikidata al clickear — sin Q-IDs hardcodeados
+// que puedan quedar obsoletos o ser incorrectos.
 const SEED = [
-  { q: 'Q6669728',  label: 'Lohana Berkins' },
-  { q: 'Q450064',   label: 'Marsha P. Johnson' },
-  { q: 'Q236936',   label: 'Sylvia Rivera' },
-  { q: 'Q21062537', label: 'Diana Sacayán' },
-  { q: 'Q381178',   label: 'Pedro Lemebel' },
-  { q: 'Q9078562',  label: 'Susy Shock' },
-  { q: 'Q272551',   label: 'Audre Lorde' },
-  { q: 'Q310791',   label: 'Reinaldo Arenas' },
-  { q: 'Q438498',   label: 'Néstor Perlongher' },
-  { q: 'Q5994816',  label: 'Lia García' },
+  'Lohana Berkins',
+  'Marsha P. Johnson',
+  'Sylvia Rivera',
+  'Diana Sacayán',
+  'Pedro Lemebel',
+  'Susy Shock',
+  'Audre Lorde',
+  'Reinaldo Arenas',
+  'Néstor Perlongher',
+  'Lia García',
 ];
 
 const STORAGE_KEY = 'queer_atlas_entries_v2';
@@ -824,12 +825,28 @@ document.addEventListener('click', (e) => {
 // SEED / Wikiproyecto:LGBT pre-loaded
 // ============================================================
 const spList = document.getElementById('sp-list');
-SEED.forEach(s => {
+SEED.forEach(name => {
   const el = document.createElement('span');
   el.className = 'sp-item';
-  el.textContent = s.label;
-  el.dataset.q = s.q;
-  el.addEventListener('click', () => selectPerson(s.q));
+  el.textContent = name;
+  el.addEventListener('click', async () => {
+    el.style.opacity = '0.5';
+    el.style.pointerEvents = 'none';
+    try {
+      const results = await wdSearch(name);
+      const best = results.find(r => r.description) || results[0];
+      if (best) {
+        await selectPerson(best.id);
+      } else {
+        showToast(`Sin resultados para "${name}".`);
+      }
+    } catch (err) {
+      showToast(`Error al buscar "${name}".`);
+    } finally {
+      el.style.opacity = '';
+      el.style.pointerEvents = '';
+    }
+  });
   spList.appendChild(el);
 });
 
@@ -1014,8 +1031,9 @@ function initMap() {
     return;
   }
   map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([10, -30], 2);
-  L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
-    attribution: '<a href="https://wikimediafoundation.org/wiki/Maps_Terms_of_Use" target="_blank">Wikimedia Maps</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> · <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
+    subdomains: 'abcd',
     maxZoom: 18,
   }).addTo(map);
 }
