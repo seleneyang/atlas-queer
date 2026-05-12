@@ -15,7 +15,7 @@ Wikipedia cubre las vidas queer y trans de forma desigual: muchas figuras que di
 **¿Cómo utilizar este atlas?**
 
 1. Buscás el nombre de alguien que te importa.
-2. La herramienta jala sus datos desde Wikidata.
+2. La herramienta jala los datos desde Wikidata y su biografía desde Wikipedia.
 3. La ubicás en el mapa.
 4. Marcás **qué le agradecés** — coraje, visibilidad, comunidad, lenguaje, arte, ternura.
 5. Marcás **qué te duele** (opcional) — rabia, duelo. 
@@ -40,6 +40,8 @@ Tres formas de empezar:
 - **Tocá una figura sugerida** en el panel "Inspirado en el Wikiproyecto:LGBT".
 - **Buscá por nombre** en el campo de búsqueda — autocompleta contra Wikidata.
 - **Explorá la galería** y el mapa para ver lo que ya cargaste (cada navegador tiene su propia galería local por ahora).
+- **Cambiá a vista de línea de tiempo** para ver las personas mapeadas por década de nacimiento. Cada punto es clickeable y abre un atajo directo al artículo de Wikipedia.
+- **Descargá** los datos en CSV o JSON desde la galería — incluye URLs de Wikipedia en cada idioma y la fecha de creación de cada artículo, útil para análisis de brechas.
 
 No requiere instalación y sirve desde cualquier navegador. 
 
@@ -47,12 +49,14 @@ No requiere instalación y sirve desde cualquier navegador.
 
 ## Tecnología
 
-- HTML/CSS/JS vanilla, single page, todo client-side
-- **Wikidata API** (`wbsearchentities`, `wbgetentities`) para búsqueda y datos biográficos
-- **Sitelinks** de Wikidata para chequear existencia del artículo por idioma
-- **Leaflet** + **Wikimedia Maps** para el mapa
-- **LocalStorage** para persistencia local
-- Tipografías: **Elms Sans** + **Quicksand** (Google Fonts)
+HTML/CSS/JS vanilla, single page, todo client-side
+Wikidata API (`wbsearchentities`, `wbgetentities`) para búsqueda y datos biográficos
+Sitelinks de Wikidata para chequear existencia del artículo por idioma
+Wikipedia REST API (`/page/summary/`) para extractos biográficos
+MediaWiki API (`prop=revisions`) para fechas de creación de artículos en el export
+Leaflet + CARTO light basemap para el mapa
+LocalStorage para persistencia local
+Tipografías: Elms Sans + Quicksand (Google Fonts)
 
 No tiene un backend o dependencias instaladas, solo CDNs. 
 
@@ -66,16 +70,16 @@ Roadmap:
 
 - [ ] **Galería colectiva** vía backend compartido (hoy es individual en cada navegador)
 - [ ] **Lectura directa de las listas del Wikiproyecto:LGBT** vía MediaWiki API, en lugar de la semilla curada manualmente
-- [ ] **Verificación y expansión** de los Q-IDs sugeridos
 - [ ] **Wikidata SPARQL** para encontrar figuras queer no listadas explícitamente
 - [ ] **Queer Atlas Watch** — herramienta hermana para monitoreo comunitario de vandalismo en biografías queer y trans, usando la API de Lift Wing
+- [ ] **Resolución de homónimos** cuando Wikidata tiene varias personas con el mismo nombre — dejar elegir antes de cargar
+- [ ] **Ubicación manual del pin** cuando Wikidata no tiene coordenadas para el lugar de nacimiento
 
 ---
 
 ## Contribuir
 
-Issues, PRs y comentarios bienvenidos. Si encontrás errores en los Q-IDs de la lista semilla, querés agregar figuras, o tenés ideas sobre los ejes de gratitud y dolor — abrí un issue.
-
+Issues, PRs y comentarios bienvenidos. Si querés agregar figuras a la lista semilla, mejorar la resolución de nombres contra Wikidata o tenés ideas sobre los ejes de gratitud y dolor, abrí un issue.
 Para discusiones más amplias sobre cómo cerrar brechas de cobertura queer en Wikipedia, el espacio natural es el [Wikiproyecto:LGBT](https://es.wikipedia.org/wiki/Wikiproyecto:LGBT).
 
 ---
