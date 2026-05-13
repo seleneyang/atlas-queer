@@ -224,6 +224,79 @@ h1 {
   margin-bottom: 14px;
 }
 
+.manual-form { display: flex; flex-direction: column; gap: 14px; }
+.m-field { display: flex; flex-direction: column; gap: 5px; }
+.m-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+.m-field input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-family: var(--body);
+  font-size: 14px;
+  color: var(--ink);
+}
+.m-field input:focus { outline: none; border-color: var(--teal); background: #FFFFFF; }
+.m-years { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.m-loc {
+  padding: 14px 16px;
+  background: var(--bg-soft);
+  border: 1.5px dashed var(--teal);
+  border-radius: 3px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.m-loc.captured {
+  background: rgba(176,199,189,0.25);
+  border-style: solid;
+  border-color: var(--sage);
+  color: var(--ink);
+}
+.m-loc-redo {
+  margin-left: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--olive);
+  cursor: pointer;
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  padding: 0;
+}
+.m-loc-redo:hover { color: var(--ink); }
+
+.m-callout {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 11px 13px;
+  background: rgba(255,179,15,0.1);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 3px 3px 0;
+}
+.m-callout strong { font-style: normal; color: var(--ink); }
+
+.suggest-item.suggest-manual {
+  border-top: 1px solid var(--rule);
+  background: var(--bg-soft);
+}
+.suggest-item.suggest-manual .si-name { color: var(--olive); font-weight: 700; }
+.suggest-item.suggest-manual .si-desc { font-style: italic; }
+.suggest-item.suggest-manual:hover { background: var(--sage-soft); }
+
 input[type="text"], input[type="search"], textarea {
   width: 100%;
   padding: 11px 13px;
@@ -633,14 +706,47 @@ textarea { resize: vertical; min-height: 64px; }
 .card .c-langs span { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 2px; letter-spacing: 0.04em; }
 .card .c-langs .y { background: var(--sage); color: var(--ink); }
 .card .c-langs .n { background: var(--amber); color: var(--ink); }
-.card .c-del {
-  position: absolute; top: 8px; right: 8px;
-  width: 22px; height: 22px;
-  border: 0; background: transparent;
-  color: var(--ink-mute); cursor: pointer;
-  font-size: 18px; line-height: 1;
+
+.card.manual { background: var(--sage-soft); border-color: var(--sage); }
+.card.manual .c-sig { background: rgba(255,255,255,0.5); }
+.card.manual .c-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--olive);
+  background: rgba(255,255,255,0.7);
+  padding: 3px 7px; border-radius: 2px;
 }
-.card .c-del:hover { color: var(--teal); }
+.card.manual .c-note {
+  font-size: 12px; line-height: 1.5;
+  color: var(--ink-soft);
+  font-style: italic;
+  padding: 10px 12px;
+  background: rgba(255,179,15,0.12);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 3px 3px 0;
+  margin-top: 4px;
+}
+.card.manual .c-note strong { font-style: normal; color: var(--ink); }
+
+.gallery-notice {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  background: var(--bg-soft);
+  border-left: 2px solid var(--olive);
+  border-radius: 0 3px 3px 0;
+  line-height: 1.55;
+}
+.gallery-notice a {
+  color: var(--ink);
+  font-weight: 700;
+  font-style: normal;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+}
+.gallery-notice a:hover { color: var(--olive); }
 
 .empty-gallery {
   padding: 40px;
@@ -768,6 +874,37 @@ footer a { color: var(--teal); }
       <div class="lang-actions" id="lang-actions"></div>
     </div>
 
+    <div class="panel" id="panel-manual" style="display:none">
+      <button class="panel-close" id="btn-close-manual" aria-label="Cerrar entrada manual">×</button>
+      <h2>Agregar manualmente</h2>
+      <p class="panel-sub">Persona sin entrada en Wikidata</p>
+
+      <div class="manual-form">
+        <label class="m-field">
+          <span class="m-label">Nombre completo</span>
+          <input type="text" id="m-name" placeholder="ej. María García">
+        </label>
+        <div class="m-years">
+          <label class="m-field">
+            <span class="m-label">Nacimiento</span>
+            <input type="number" id="m-birth" placeholder="ej. 1950">
+          </label>
+          <label class="m-field">
+            <span class="m-label">Muerte (opc)</span>
+            <input type="number" id="m-death" placeholder="vacío si vive">
+          </label>
+        </div>
+
+        <div class="m-loc" id="m-loc">
+          <div class="m-loc-text" id="m-loc-text">Tocá el mapa para ubicar a esta persona</div>
+        </div>
+
+        <div class="m-callout">
+          Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong>
+        </div>
+      </div>
+    </div>
+
     <div class="panel" id="panel-emotions" style="display:none">
       <h2>Lo que le agradezco</h2>
       <p class="panel-sub">Marcá lo que esta figura te dio · escala 0–10</p>
@@ -845,6 +982,9 @@ footer a { color: var(--teal); }
       <button class="btn-export" id="btn-csv" disabled>↓ Descargar CSV</button>
       <button class="btn-export" id="btn-json" disabled>↓ JSON</button>
     </div>
+  </div>
+  <div class="gallery-notice">
+    Las tarjetas son permanentes. Si querés editar o quitar la tuya, abrí un issue en el <a href="https://github.com/[tu-usuaria]/queer-atlas/issues/new" target="_blank" rel="noopener">repositorio del proyecto</a>.
   </div>
   <div id="gallery-content"></div>
 </section>
@@ -1095,18 +1235,32 @@ async function doSearch(q) {
   suggest.classList.add('open');
   try {
     const results = await wdSearch(q);
-    if (!results.length) {
-      suggest.innerHTML = '<div class="suggest-item" style="cursor:default;color:var(--ink-mute);font-style:italic">Sin resultados.</div>';
-      return;
+    let html = '';
+    if (results.length) {
+      html = results.map(r => `
+        <div class="suggest-item" data-q="${r.id}">
+          <div class="si-name">${escapeHtml(r.label)}</div>
+          <div class="si-desc">${escapeHtml(r.description || '—')} · <code>${r.id}</code></div>
+        </div>
+      `).join('');
+    } else {
+      html = '<div class="suggest-item" style="cursor:default;color:var(--ink-mute);font-style:italic">Sin resultados en Wikidata.</div>';
     }
-    suggest.innerHTML = results.map(r => `
-      <div class="suggest-item" data-q="${r.id}">
-        <div class="si-name">${escapeHtml(r.label)}</div>
-        <div class="si-desc">${escapeHtml(r.description || '—')} · <code>${r.id}</code></div>
+    // Always offer manual entry at the bottom
+    html += `
+      <div class="suggest-item suggest-manual" data-action="manual" data-name="${escapeHtml(q)}">
+        <div class="si-name">+ Agregar manualmente: "${escapeHtml(q)}"</div>
+        <div class="si-desc">Para personas que aún no están en Wikidata</div>
       </div>
-    `).join('');
+    `;
+    suggest.innerHTML = html;
+
     suggest.querySelectorAll('.suggest-item').forEach(el => {
-      el.addEventListener('click', () => selectPerson(el.dataset.q));
+      if (el.dataset.action === 'manual') {
+        el.addEventListener('click', () => startManualEntry(el.dataset.name));
+      } else if (el.dataset.q) {
+        el.addEventListener('click', () => selectPerson(el.dataset.q));
+      }
     });
   } catch (e) {
     suggest.innerHTML = '<div class="suggest-item" style="cursor:default;color:var(--amber)">Error en la búsqueda.</div>';
@@ -1294,10 +1448,13 @@ function dominantEmotionColor(ems) {
 // ============================================================
 function clearSelection() {
   current = null;
+  manualMode = false;
   document.getElementById('panel-detail').style.display = 'none';
   document.getElementById('panel-emotions').style.display = 'none';
+  document.getElementById('panel-manual').style.display = 'none';
   document.getElementById('below-map').classList.remove('on');
   document.getElementById('note').value = '';
+  clearManualPreview();
   const tlPop = document.getElementById('tl-popup');
   if (tlPop) tlPop.style.display = 'none';
 }
@@ -1308,9 +1465,23 @@ document.getElementById('btn-close-detail').addEventListener('click', clearSelec
 document.getElementById('btn-submit').addEventListener('click', () => {
   if (!current) return;
   if (!current.coords) {
-    showToast('No tenemos coordenadas para esta persona — agregale ubicación manualmente en una versión futura.');
+    showToast('No tenemos coordenadas para esta persona — ubicala manualmente.');
     return;
   }
+
+  // For manual entries, re-read the form fields in case the user edited them
+  // after picking a location on the map
+  if (current.manual) {
+    const name = document.getElementById('m-name').value.trim();
+    if (!name) {
+      showToast('Necesitamos un nombre antes de sumar al atlas.');
+      return;
+    }
+    current.name = name;
+    current.birthYear = parseInt(document.getElementById('m-birth').value) || null;
+    current.deathYear = parseInt(document.getElementById('m-death').value) || null;
+  }
+
   current.note = document.getElementById('note').value.trim();
   current.submitted_at = new Date().toISOString();
 
@@ -1318,15 +1489,134 @@ document.getElementById('btn-submit').addEventListener('click', () => {
   entries = entries.filter(e => e.qid !== current.qid);
   entries.push({ ...current });
   saveEntries();
+  clearManualPreview();
+  manualMode = false;
   refreshAll();
 
   showToast(`${current.name} sumada al atlas.`);
   current = null;
   document.getElementById('panel-detail').style.display = 'none';
+  document.getElementById('panel-manual').style.display = 'none';
   document.getElementById('panel-emotions').style.display = 'none';
   document.getElementById('below-map').classList.remove('on');
   document.getElementById('note').value = '';
 });
+
+// ============================================================
+// MANUAL ENTRY (personas sin Wikidata)
+// ============================================================
+let manualMode = false;
+let manualPreviewMarker = null;
+
+function clearManualPreview() {
+  if (manualPreviewMarker && map) {
+    map.removeLayer(manualPreviewMarker);
+    manualPreviewMarker = null;
+  }
+}
+
+function startManualEntry(prefilledName = '') {
+  // Close any open Wikidata selection first
+  current = null;
+  document.getElementById('panel-detail').style.display = 'none';
+  document.getElementById('panel-emotions').style.display = 'none';
+  document.getElementById('below-map').classList.remove('on');
+  clearManualPreview();
+
+  manualMode = true;
+  document.getElementById('panel-manual').style.display = 'block';
+  document.getElementById('m-name').value = prefilledName;
+  document.getElementById('m-birth').value = '';
+  document.getElementById('m-death').value = '';
+  document.getElementById('m-loc-text').textContent = 'Tocá el mapa para ubicar a esta persona';
+  document.getElementById('m-loc').classList.remove('captured');
+
+  suggest.classList.remove('open');
+  searchInput.value = '';
+
+  // Make sure the map (not timeline) is visible
+  const mapBtn = document.getElementById('map-mode-map');
+  const tlBtn = document.getElementById('map-mode-timeline');
+  if (mapBtn && tlBtn && !mapBtn.classList.contains('on')) {
+    mapBtn.click();
+  }
+
+  showToast('Completá los datos y tocá el mapa para ubicar.');
+}
+
+function handleManualLocation(latlng) {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) {
+    showToast('Escribí el nombre antes de ubicar.');
+    return;
+  }
+
+  const birthYear = parseInt(document.getElementById('m-birth').value) || null;
+  const deathYear = parseInt(document.getElementById('m-death').value) || null;
+
+  // Reuse the same qid across re-clicks so dedupe in submit works on cancel/redo
+  const qid = current?.manual ? current.qid : 'manual_' + Date.now();
+
+  const person = {
+    qid,
+    name,
+    birthYear,
+    deathYear,
+    pobLabel: null,
+    description: null,
+    coords: { lat: latlng.lat, lng: latlng.lng },
+    image: null,
+    sitelinks: {},
+    manual: true,
+  };
+
+  current = {
+    ...person,
+    emotions: Object.fromEntries(ALL_AXES.map(e => [e.key, 0])),
+    note: '',
+  };
+
+  // Preview pin on the map (visual, not yet in entries[])
+  if (!manualPreviewMarker) {
+    const icon = L.divIcon({
+      className: 'qa-pin',
+      html: '<div style="width:14px;height:14px;border-radius:50%;background:#B0C7BD;border:2px dashed #050609;box-shadow:0 1px 3px rgba(5,6,9,0.3)"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [9, 9],
+    });
+    manualPreviewMarker = L.marker(latlng, { icon }).addTo(map);
+  } else {
+    manualPreviewMarker.setLatLng(latlng);
+  }
+
+  // Update form to reflect captured state
+  const locEl = document.getElementById('m-loc');
+  const locTxt = document.getElementById('m-loc-text');
+  locTxt.innerHTML = '✓ Ubicada · <button class="m-loc-redo" type="button">cambiar</button>';
+  locEl.classList.add('captured');
+  locEl.querySelector('.m-loc-redo').addEventListener('click', () => {
+    locTxt.textContent = 'Tocá el mapa otra vez para mover el pin';
+    locEl.classList.remove('captured');
+  });
+
+  // Show emotions panel
+  document.getElementById('panel-emotions').style.display = 'block';
+  renderSliders();
+  renderSignature();
+
+  showToast('Marcá lo que esta figura te genera y sumá al atlas.');
+}
+
+function cancelManualEntry() {
+  manualMode = false;
+  current = null;
+  document.getElementById('panel-manual').style.display = 'none';
+  document.getElementById('panel-emotions').style.display = 'none';
+  document.getElementById('note').value = '';
+  clearManualPreview();
+}
+
+document.getElementById('btn-close-manual').addEventListener('click', cancelManualEntry);
 
 // ============================================================
 // MAP
@@ -1343,6 +1633,10 @@ function initMap() {
     subdomains: 'abcd',
     maxZoom: 18,
   }).addTo(map);
+
+  map.on('click', (e) => {
+    if (manualMode) handleManualLocation(e.latlng);
+  });
 }
 
 function renderMap() {
@@ -1351,21 +1645,25 @@ function renderMap() {
   markers = {};
   entries.forEach(e => {
     if (!e.coords) return;
-    const color = dominantEmotionColor(e.emotions);
+    const isManual = !!e.manual;
+    const color = isManual ? '#B0C7BD' : dominantEmotionColor(e.emotions);
+    const border = isManual ? '2px dashed #050609' : '2px solid #050609';
     const icon = L.divIcon({
       className: 'qa-pin',
-      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #050609;box-shadow:0 1px 3px rgba(5,6,9,0.3)"></div>`,
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:${border};box-shadow:0 1px 3px rgba(5,6,9,0.3)"></div>`,
       iconSize: [14, 14],
       iconAnchor: [9, 9],
     });
     const m = L.marker([e.coords.lat, e.coords.lng], { icon }).addTo(map);
-    const langStr = LANGS.map(l => `${l.label}${e.sitelinks[l.code] ? '✓' : '✗'}`).join('  ');
-    m.bindPopup(`
-      <strong>${escapeHtml(e.name)}</strong><br>
-      <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
-      <span style="font-size:11px;font-family:monospace;color:#888">${e.qid}</span><br>
-      <span style="font-size:11px;letter-spacing:0.04em">${langStr}</span>
-    `);
+    const popupBody = isManual
+      ? `<strong>${escapeHtml(e.name)}</strong><br>
+         <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
+         <span style="font-size:11px;color:var(--olive);font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Sin Wikidata · biografía pendiente</span>`
+      : `<strong>${escapeHtml(e.name)}</strong><br>
+         <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
+         <span style="font-size:11px;font-family:monospace;color:#888">${e.qid}</span><br>
+         <span style="font-size:11px;letter-spacing:0.04em">${LANGS.map(l => `${l.label}${e.sitelinks[l.code] ? '✓' : '✗'}`).join('  ')}</span>`;
+    m.bindPopup(popupBody);
     markers[e.qid] = m;
   });
 }
@@ -1382,7 +1680,7 @@ function renderTimeline() {
   decadesEl.innerHTML = '';
   document.getElementById('tl-popup').style.display = 'none';
 
-  const withYear = entries.filter(e => e.birthYear);
+  const withYear = entries.filter(e => e.birthYear && !e.manual);
   if (!withYear.length) {
     const empty = document.createElement('div');
     empty.className = 'tl-empty';
@@ -1475,15 +1773,25 @@ document.querySelectorAll('.map-toggle button').forEach(b => {
 function renderGallery() {
   const wrap = document.getElementById('gallery-content');
   if (!entries.length) {
-    wrap.innerHTML = '<div class="empty-gallery">Todavía no hay personas en el atlas. Buscá una arriba o usá uno de los nombres sugeridos.</div>';
+    wrap.innerHTML = '<div class="empty-gallery">Todavía no hay personas en el atlas. Buscá una arriba o sumá una manualmente desde el buscador.</div>';
     return;
   }
   const cards = entries.slice().reverse().map(e => {
     const sigId = 'gsig-' + e.qid;
+    if (e.manual) {
+      return `
+        <div class="card manual">
+          <div class="c-badge">Sin Wikidata</div>
+          <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
+          <div class="c-name">${escapeHtml(e.name)}</div>
+          <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
+          <div class="c-note">Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong></div>
+        </div>
+      `;
+    }
     const langs = LANGS.map(l => `<span class="${e.sitelinks[l.code] ? 'y' : 'n'}">${l.label}</span>`).join('');
     return `
       <div class="card">
-        <button class="c-del" title="Quitar" data-q="${e.qid}">×</button>
         <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
         <div class="c-name">${escapeHtml(e.name)}</div>
         <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
@@ -1497,16 +1805,6 @@ function renderGallery() {
     const svg = document.getElementById('gsig-' + e.qid);
     if (svg) renderSignature(svg, e.emotions);
   });
-  wrap.querySelectorAll('.c-del').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const q = btn.dataset.q;
-      if (confirm('¿Quitar del atlas?')) {
-        entries = entries.filter(e => e.qid !== q);
-        saveEntries();
-        refreshAll();
-      }
-    });
-  });
 }
 
 // ============================================================
@@ -1514,11 +1812,12 @@ function renderGallery() {
 // ============================================================
 function renderStats() {
   document.getElementById('st-total').textContent = entries.length;
-  document.getElementById('st-es').textContent = entries.filter(e => !e.sitelinks.es).length;
-  document.getElementById('st-en').textContent = entries.filter(e => !e.sitelinks.en).length;
-  document.getElementById('st-fr').textContent = entries.filter(e => !e.sitelinks.fr).length;
-  document.getElementById('st-pt').textContent = entries.filter(e => !e.sitelinks.pt).length;
-  document.getElementById('st-none').textContent = entries.filter(e => !LANGS.some(l => e.sitelinks[l.code])).length;
+  const wd = entries.filter(e => !e.manual); // language gaps only apply to Wikidata-known figures
+  document.getElementById('st-es').textContent = wd.filter(e => !e.sitelinks.es).length;
+  document.getElementById('st-en').textContent = wd.filter(e => !e.sitelinks.en).length;
+  document.getElementById('st-fr').textContent = wd.filter(e => !e.sitelinks.fr).length;
+  document.getElementById('st-pt').textContent = wd.filter(e => !e.sitelinks.pt).length;
+  document.getElementById('st-none').textContent = wd.filter(e => !LANGS.some(l => e.sitelinks[l.code])).length;
 }
 
 function refreshAll() {
@@ -1566,32 +1865,42 @@ async function fetchCreationDate(title, lang) {
 async function buildExportRows() {
   const rows = [];
   for (const entry of entries) {
+    const isManual = !!entry.manual;
     const row = {
       nombre: entry.name,
-      qid: entry.qid,
-      wikidata_url: `https://www.wikidata.org/wiki/${entry.qid}`,
+      qid: isManual ? '' : entry.qid,
+      wikidata_url: isManual ? '' : `https://www.wikidata.org/wiki/${entry.qid}`,
       lugar: entry.pobLabel || '',
       ano_nacimiento: entry.birthYear || '',
       ano_muerte: entry.deathYear || '',
       descripcion: entry.description || '',
+      coords_lat: entry.coords?.lat ?? '',
+      coords_lng: entry.coords?.lng ?? '',
     };
 
-    // Fetch creation dates in parallel for the 4 languages
-    const langResults = await Promise.all(LANGS.map(async lang => {
-      const title = entry.sitelinks[lang.code];
-      if (!title) return { lang: lang.code, url: '', created: '' };
-      const created = await fetchCreationDate(title, lang.code);
-      return {
-        lang: lang.code,
-        url: `https://${lang.code}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
-        created: created || '',
-      };
-    }));
-
-    langResults.forEach(r => {
-      row[`wikipedia_${r.lang}`] = r.url;
-      row[`creacion_${r.lang}`] = r.created;
-    });
+    if (isManual) {
+      // No sitelinks, no creation dates to fetch
+      for (const lang of LANGS) {
+        row[`wikipedia_${lang.code}`] = '';
+        row[`creacion_${lang.code}`] = '';
+      }
+    } else {
+      // Fetch creation dates in parallel for the 4 languages
+      const langResults = await Promise.all(LANGS.map(async lang => {
+        const title = entry.sitelinks[lang.code];
+        if (!title) return { lang: lang.code, url: '', created: '' };
+        const created = await fetchCreationDate(title, lang.code);
+        return {
+          lang: lang.code,
+          url: `https://${lang.code}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+          created: created || '',
+        };
+      }));
+      langResults.forEach(r => {
+        row[`wikipedia_${r.lang}`] = r.url;
+        row[`creacion_${r.lang}`] = r.created;
+      });
+    }
 
     rows.push(row);
   }
