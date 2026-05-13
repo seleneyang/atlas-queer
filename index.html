@@ -2027,6 +2027,42 @@ function startManualEntry(prefilledName = '') {
   showToast('Completá los datos y tocá el mapa para ubicar.');
 }
 
+// Reverse geocode lat/lng to country name via Nominatim (OpenStreetMap).
+// Same data source as the map tiles. Free, no API key.
+// Cached in-memory per coords key to avoid duplicate calls.
+const reverseGeocodeCache = {};
+async function reverseGeocode(lat, lng) {
+  const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if (key in reverseGeocodeCache) return reverseGeocodeCache[key];
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=3&accept-language=es`;
+    const r = await fetch(url);
+    if (!r.ok) { reverseGeocodeCache[key] = null; return null; }
+    const d = await r.json();
+    const country = d.address?.country || null;
+    reverseGeocodeCache[key] = country;
+    return country;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Render the "captured" state of the location prompt — shared so it can be
+// re-rendered when the reverse-geocoded country comes back.
+function renderManualLocCaptured(detectedCountry) {
+  const locEl = document.getElementById('m-loc');
+  const locTxt = document.getElementById('m-loc-text');
+  const country = detectedCountry
+    ? ` · <strong>${escapeHtml(detectedCountry)}</strong>`
+    : '';
+  locTxt.innerHTML = `✓ Ubicada${country} · <button class="m-loc-redo" type="button">cambiar</button>`;
+  locEl.classList.add('captured');
+  locEl.querySelector('.m-loc-redo').addEventListener('click', () => {
+    locTxt.textContent = 'Tocá el mapa otra vez para mover el pin';
+    locEl.classList.remove('captured');
+  });
+}
+
 function handleManualLocation(latlng) {
   const name = document.getElementById('m-name').value.trim();
   if (!name) {
@@ -2046,6 +2082,7 @@ function handleManualLocation(latlng) {
     birthYear,
     deathYear,
     pobLabel: null,
+    countryLabel: null, // will be filled by reverse geocoding below
     description: null,
     coords: { lat: latlng.lat, lng: latlng.lng },
     image: null,
@@ -2072,20 +2109,24 @@ function handleManualLocation(latlng) {
     manualPreviewMarker.setLatLng(latlng);
   }
 
-  // Update form to reflect captured state
-  const locEl = document.getElementById('m-loc');
-  const locTxt = document.getElementById('m-loc-text');
-  locTxt.innerHTML = '✓ Ubicada · <button class="m-loc-redo" type="button">cambiar</button>';
-  locEl.classList.add('captured');
-  locEl.querySelector('.m-loc-redo').addEventListener('click', () => {
-    locTxt.textContent = 'Tocá el mapa otra vez para mover el pin';
-    locEl.classList.remove('captured');
-  });
+  // Update form to reflect captured state (country pending)
+  renderManualLocCaptured(null);
 
   // Show emotions panel
   document.getElementById('panel-emotions').style.display = 'block';
   renderSliders();
   renderSignature();
+
+  // Reverse geocode in background; update UI + current when it arrives.
+  // Guard against the user moving the pin before the request returns
+  // (we only apply the result if coords are still the same).
+  reverseGeocode(latlng.lat, latlng.lng).then(country => {
+    if (!country) return;
+    if (!current?.manual) return;
+    if (current.coords?.lat !== latlng.lat || current.coords?.lng !== latlng.lng) return;
+    current.countryLabel = country;
+    renderManualLocCaptured(country);
+  });
 
   showToast('Marcá lo que esta figura te genera y sumá al atlas.');
 }
@@ -2796,12 +2837,16 @@ document.getElementById('btn-json').addEventListener('click', () => runExport('j
 async function backfillCountries() {
   // Old entries have countryLabel === undefined (the field didn't exist yet).
   // New entries have it as string (label) or null (Wikidata has no P27).
-  // We only backfill the undefined ones.
-  const toBackfill = entries.filter(e => !e.manual && e.countryLabel === undefined);
-  if (!toBackfill.length) return;
+  // We backfill the undefined ones.
+  // For Wikidata-backed entries: query Wikidata's P27.
+  // For manual entries: reverse-geocode their coords via Nominatim.
+  const wikidataToBackfill = entries.filter(e => !e.manual && e.countryLabel === undefined);
+  const manualToBackfill = entries.filter(e => e.manual && !e.countryLabel && e.coords);
+  if (!wikidataToBackfill.length && !manualToBackfill.length) return;
 
   const updatedEntries = [];
-  for (const entry of toBackfill) {
+
+  for (const entry of wikidataToBackfill) {
     try {
       const ent = await wdGetEntity(entry.qid);
       if (!ent) continue;
@@ -2810,6 +2855,18 @@ async function backfillCountries() {
       updatedEntries.push(entry);
     } catch (e) {
       // Network error — leave undefined so we retry next load
+    }
+  }
+
+  for (const entry of manualToBackfill) {
+    try {
+      const country = await reverseGeocode(entry.coords.lat, entry.coords.lng);
+      if (country) {
+        entry.countryLabel = country;
+        updatedEntries.push(entry);
+      }
+    } catch (e) {
+      // Network error — try again next load
     }
   }
 
@@ -2824,7 +2881,7 @@ async function backfillCountries() {
       }
     }
     const n = updatedEntries.length;
-    showToast(`Actualizado: ${n} ${n === 1 ? 'país recuperado' : 'países recuperados'} desde Wikidata.`);
+    showToast(`Actualizado: ${n} ${n === 1 ? 'país recuperado' : 'países recuperados'}.`);
   }
 }
 
