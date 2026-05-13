@@ -2343,10 +2343,41 @@ document.getElementById('btn-csv').addEventListener('click', () => runExport('cs
 document.getElementById('btn-json').addEventListener('click', () => runExport('json'));
 
 // ============================================================
+// BACKFILL: old entries saved before countryLabel existed
+// ============================================================
+async function backfillCountries() {
+  // Old entries have countryLabel === undefined (the field didn't exist yet).
+  // New entries have it as string (label) or null (Wikidata has no P27).
+  // We only backfill the undefined ones.
+  const toBackfill = entries.filter(e => !e.manual && e.countryLabel === undefined);
+  if (!toBackfill.length) return;
+
+  let updated = 0;
+  for (const entry of toBackfill) {
+    try {
+      const ent = await wdGetEntity(entry.qid);
+      if (!ent) continue;
+      const cocQid = ent.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id;
+      entry.countryLabel = cocQid ? (await wdGetLabel(cocQid)) : null;
+      updated++;
+    } catch (e) {
+      // Network error — leave undefined so we retry next load
+    }
+  }
+
+  if (updated > 0) {
+    saveEntries();
+    refreshAll();
+    showToast(`Actualizado: ${updated} ${updated === 1 ? 'país recuperado' : 'países recuperados'} desde Wikidata.`);
+  }
+}
+
+// ============================================================
 // INIT
 // ============================================================
 initMap();
 refreshAll();
+backfillCountries();
 </script>
 
 </body>
