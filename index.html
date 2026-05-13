@@ -42,7 +42,7 @@ html, body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--body);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   font-feature-settings: 'tnum' off;
 }
@@ -288,6 +288,18 @@ h1 {
   border-radius: 0 3px 3px 0;
 }
 .m-callout strong { font-style: normal; color: var(--ink); }
+
+.add-existing-notice {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  padding: 11px 14px;
+  background: rgba(12,116,137,0.08);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 3px 3px 0;
+  margin-bottom: 16px;
+}
+.add-existing-notice strong { color: var(--ink); font-weight: 700; }
 
 .suggest-item.suggest-manual {
   border-top: 1px solid var(--rule);
@@ -550,7 +562,8 @@ textarea { resize: vertical; min-height: 64px; }
 .bc-link:hover { background: var(--amber); border-color: var(--amber); }
 .bc-link .arrow { font-size: 14px; line-height: 1; }
 .timeline-wrap h3 { font-family: var(--display); font-size: 24px; font-weight: 500; margin-bottom: 4px; color: var(--ink); }
-.timeline-wrap .tl-sub { font-size: 11px; color: var(--olive); margin-bottom: 18px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.timeline-wrap .tl-sub { font-size: 11px; color: var(--olive); margin-bottom: 6px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.timeline-wrap .tl-hint { font-size: 13px; color: var(--ink-mute); margin-bottom: 18px; font-style: italic; line-height: 1.4; }
 .tl-axis { position: relative; padding: 24px 0; }
 .tl-line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--sage); }
 .tl-dot {
@@ -833,6 +846,45 @@ textarea { resize: vertical; min-height: 64px; }
 .card .c-langs .y { background: var(--sage); color: var(--ink); }
 .card .c-langs .n { background: var(--amber); color: var(--ink); }
 
+.card .c-contribs {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: rgba(12,116,137,0.08);
+  padding: 3px 8px;
+  border-radius: 2px;
+  align-self: flex-start;
+}
+.card .c-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.card .c-msg {
+  font-size: 12px;
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--ink-soft);
+  padding: 9px 11px 9px 14px;
+  background: var(--bg-soft);
+  border-left: 2px solid var(--olive);
+  border-radius: 0 3px 3px 0;
+  position: relative;
+}
+.card .c-msg::before {
+  content: '“';
+  position: absolute;
+  left: 4px; top: -2px;
+  font-family: var(--display);
+  font-size: 18px;
+  color: var(--olive);
+  font-style: normal;
+  opacity: 0.6;
+}
+
 .card.manual { background: var(--sage-soft); border-color: var(--sage); }
 .card.manual .c-sig { background: rgba(255,255,255,0.5); }
 .card.manual .c-badge {
@@ -978,7 +1030,7 @@ footer a { color: var(--teal); }
       <h2>Buscar una figura</h2>
       <p class="panel-sub">Wikidata · escribí el nombre y elegí</p>
       <div class="search-wrap">
-        <input type="search" id="search" placeholder="ej. Lohana Berkins, Pedro Lemebel, Marsha Johnson…" autocomplete="off">
+        <input type="search" id="search" placeholder="Buscá unx activistx" autocomplete="off">
         <div class="suggest" id="suggest"></div>
       </div>
 
@@ -1035,6 +1087,12 @@ footer a { color: var(--teal); }
       <h2>Lo que le agradezco</h2>
       <p class="panel-sub">Marcá lo que esta figura te dio · escala 0–10</p>
 
+      <div class="add-existing-notice" id="add-existing-notice" style="display:none">
+        <strong>Esta persona ya está mapeada.</strong>
+        <span id="add-existing-count"></span>
+        Tu marca y tu mensaje se suman al atlas colectivo, no reemplazan los anteriores.
+      </div>
+
       <div class="sliders" id="sliders"></div>
 
       <div class="pain-section">
@@ -1078,6 +1136,7 @@ footer a { color: var(--teal); }
     <div class="timeline-wrap" id="timeline">
       <h3>Aparición en Wikipedia</h3>
       <div class="tl-sub">Personas mapeadas según década de nacimiento</div>
+      <div class="tl-hint">Podés pasar sobre los puntos para conocer a lxs activistxs nacidxs en esas fechas.</div>
       <div class="tl-axis" id="tl-axis" style="height:120px">
         <div class="tl-line"></div>
         <div class="tl-popup" id="tl-popup" style="display:none">
@@ -1206,11 +1265,42 @@ let map, markers = {};
 // PERSISTENCE
 // ============================================================
 function loadEntries() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch (e) { return []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return raw.map(migrateEntry);
+  } catch (e) { return []; }
 }
 function saveEntries() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+// Old entries had `emotions` + `note` directly on the entry.
+// New schema: entry.contributions = [{ emotions, note, submitted_at }, ...]
+// entry.emotions and entry.notes are derived (cached) for fast rendering.
+function migrateEntry(entry) {
+  if (!entry.contributions) {
+    entry.contributions = [{
+      emotions: entry.emotions || {},
+      note: entry.note || '',
+      submitted_at: entry.submitted_at || new Date().toISOString(),
+    }];
+  }
+  entry.emotions = aggregateEmotions(entry.contributions);
+  entry.notes = entry.contributions.map(c => (c.note || '').trim()).filter(Boolean);
+  return entry;
+}
+
+function aggregateEmotions(contributions) {
+  const out = {};
+  if (!contributions || !contributions.length) return out;
+  // ALL_AXES may not be defined yet on first load; guard with a fallback
+  const axes = (typeof ALL_AXES !== 'undefined' ? ALL_AXES : []);
+  axes.forEach(a => { out[a.key] = 0; });
+  contributions.forEach(c => {
+    axes.forEach(a => { out[a.key] += (c.emotions?.[a.key] || 0); });
+  });
+  axes.forEach(a => { out[a.key] = out[a.key] / contributions.length; });
+  return out;
 }
 
 // ============================================================
@@ -1472,11 +1562,28 @@ async function selectPerson(qid) {
   try {
     const person = await parsePerson(qid);
     if (!person) throw new Error('No data');
+
+    const existing = entries.find(e => e.qid === qid);
     current = {
       ...person,
       emotions: Object.fromEntries(ALL_AXES.map(e => [e.key, 0])),
       note: '',
+      isAddingTo: !!existing,
     };
+
+    // Show or hide the "already mapped" notice in the emotions panel
+    const notice = document.getElementById('add-existing-notice');
+    if (existing) {
+      const n = (existing.contributions || []).length;
+      notice.style.display = 'block';
+      document.getElementById('add-existing-count').textContent =
+        n > 0 ? `Lleva ${n} ${n === 1 ? 'marca' : 'marcas'} anteriores. ` : '';
+      document.getElementById('btn-submit').textContent = 'Agregar mi marca';
+    } else {
+      notice.style.display = 'none';
+      document.getElementById('btn-submit').textContent = 'Sumar al atlas';
+    }
+
     renderDetail();
     renderLangs();
     renderSliders();
@@ -1619,6 +1726,10 @@ function clearSelection() {
   document.getElementById('panel-manual').style.display = 'none';
   document.getElementById('below-map').classList.remove('on');
   document.getElementById('note').value = '';
+  const notice = document.getElementById('add-existing-notice');
+  if (notice) notice.style.display = 'none';
+  const submitBtn = document.getElementById('btn-submit');
+  if (submitBtn) submitBtn.textContent = 'Sumar al atlas';
   clearManualPreview();
   const tlPop = document.getElementById('tl-popup');
   if (tlPop) tlPop.style.display = 'none';
@@ -1648,17 +1759,42 @@ document.getElementById('btn-submit').addEventListener('click', () => {
   }
 
   current.note = document.getElementById('note').value.trim();
-  current.submitted_at = new Date().toISOString();
+  const newContribution = {
+    emotions: { ...current.emotions },
+    note: current.note,
+    submitted_at: new Date().toISOString(),
+  };
 
-  // Dedupe by qid
-  entries = entries.filter(e => e.qid !== current.qid);
-  entries.push({ ...current });
+  const existingIndex = entries.findIndex(e => e.qid === current.qid);
+  if (existingIndex >= 0) {
+    // Person already exists — append this contribution to the existing entry
+    const existing = entries[existingIndex];
+    existing.contributions = existing.contributions || [];
+    existing.contributions.push(newContribution);
+    existing.emotions = aggregateEmotions(existing.contributions);
+    existing.notes = existing.contributions.map(c => (c.note || '').trim()).filter(Boolean);
+    existing.last_contribution_at = newContribution.submitted_at;
+  } else {
+    // Brand new entry
+    const newEntry = {
+      ...current,
+      contributions: [newContribution],
+      emotions: { ...newContribution.emotions },
+      notes: newContribution.note ? [newContribution.note] : [],
+      submitted_at: newContribution.submitted_at,
+    };
+    delete newEntry.isAddingTo;
+    delete newEntry.note;
+    entries.push(newEntry);
+  }
+
   saveEntries();
   clearManualPreview();
   manualMode = false;
   refreshAll();
 
-  showToast(`${current.name} sumada al atlas.`);
+  const isAdd = existingIndex >= 0;
+  showToast(isAdd ? `Tu marca se sumó a ${current.name}.` : `${current.name} sumada al atlas.`);
   current = null;
   document.getElementById('panel-detail').style.display = 'none';
   document.getElementById('panel-manual').style.display = 'none';
@@ -1804,13 +1940,61 @@ function initMap() {
   });
 }
 
+// Spread overlapping pins into a circle around their shared coords.
+// Pins that share their lat/lng to ~100m precision are grouped together
+// and arranged radially around the centroid; everything else uses its
+// original coords. This is most useful for entries whose coords fell back
+// to the country centroid (Wikidata P27) because place-of-birth/death
+// wasn't available.
+function computeDisplayCoords(visibleEntries) {
+  const groups = {};
+  visibleEntries.forEach(e => {
+    if (!e.coords) return;
+    const key = `${e.coords.lat.toFixed(3)},${e.coords.lng.toFixed(3)}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+
+  const result = new Map();
+  const RADIUS_INNER = 0.45; // degrees (~50km at the equator)
+  const RADIUS_OUTER = 0.95;
+  Object.values(groups).forEach(group => {
+    if (group.length === 1) {
+      result.set(group[0].qid, group[0].coords);
+      return;
+    }
+    const baseLat = group[0].coords.lat;
+    const baseLng = group[0].coords.lng;
+    // Up to 8 pins in the inner ring; the rest in an outer ring
+    const innerN = Math.min(group.length, 8);
+    const outerN = group.length - innerN;
+    for (let i = 0; i < innerN; i++) {
+      const angle = (i / innerN) * Math.PI * 2 - Math.PI / 2;
+      result.set(group[i].qid, {
+        lat: baseLat + Math.cos(angle) * RADIUS_INNER,
+        lng: baseLng + Math.sin(angle) * RADIUS_INNER,
+      });
+    }
+    for (let i = 0; i < outerN; i++) {
+      const angle = (i / outerN) * Math.PI * 2 - Math.PI / 2 + Math.PI / 16;
+      result.set(group[innerN + i].qid, {
+        lat: baseLat + Math.cos(angle) * RADIUS_OUTER,
+        lng: baseLng + Math.sin(angle) * RADIUS_OUTER,
+      });
+    }
+  });
+  return result;
+}
+
 function renderMap() {
   if (!map) return;
   Object.values(markers).forEach(m => map.removeLayer(m));
   markers = {};
   const visible = applyMapFilters(entries);
+  const displayCoords = computeDisplayCoords(visible);
   visible.forEach(e => {
-    if (!e.coords) return;
+    const coords = displayCoords.get(e.qid);
+    if (!coords) return;
     const isManual = !!e.manual;
     const color = isManual ? '#B0C7BD' : dominantEmotionColor(e.emotions);
     const border = isManual ? '2px dashed #050609' : '2px solid #050609';
@@ -1820,11 +2004,11 @@ function renderMap() {
       iconSize: [14, 14],
       iconAnchor: [9, 9],
     });
-    const m = L.marker([e.coords.lat, e.coords.lng], { icon }).addTo(map);
+    const m = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
     const popupBody = isManual
       ? `<strong>${escapeHtml(e.name)}</strong><br>
          <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
-         <span style="font-size:11px;color:var(--olive);font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Sin Wikidata · biografía pendiente</span>`
+         <span style="font-size:11px;color:var(--olive);font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Sin Wikipedia o Wikidata · biografía pendiente</span>`
       : `<strong>${escapeHtml(e.name)}</strong><br>
          <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
          <span style="font-size:11px;font-family:monospace;color:#888">${e.qid}</span><br>
@@ -1845,6 +2029,7 @@ function renderTimeline() {
   axis.querySelectorAll('.tl-dot, .tl-empty').forEach(el => el.remove());
   decadesEl.innerHTML = '';
   document.getElementById('tl-popup').style.display = 'none';
+  if (typeof tlPopupLocked !== 'undefined') tlPopupLocked = false;
 
   const withYear = applyMapFilters(entries.filter(e => e.birthYear && !e.manual));
   if (!withYear.length) {
@@ -1870,6 +2055,18 @@ function renderTimeline() {
     dot.addEventListener('click', (ev) => {
       ev.stopPropagation();
       showTimelinePopup(e, pct);
+      tlPopupLocked = true; // click locks it open until next outside click
+    });
+    dot.addEventListener('mouseenter', () => {
+      if (tlPopupLocked) return;
+      clearTimeout(tlPopupCloseTimer);
+      showTimelinePopup(e, pct);
+    });
+    dot.addEventListener('mouseleave', () => {
+      if (tlPopupLocked) return;
+      tlPopupCloseTimer = setTimeout(() => {
+        document.getElementById('tl-popup').style.display = 'none';
+      }, 280);
     });
     axis.appendChild(dot);
   });
@@ -1902,14 +2099,30 @@ function showTimelinePopup(entry, leftPct) {
   popup.style.display = 'block';
 }
 
+let tlPopupCloseTimer = null;
+let tlPopupLocked = false;
+
+// When the mouse enters the popup itself, cancel any pending close
+document.getElementById('tl-popup').addEventListener('mouseenter', () => {
+  clearTimeout(tlPopupCloseTimer);
+});
+document.getElementById('tl-popup').addEventListener('mouseleave', () => {
+  if (tlPopupLocked) return;
+  tlPopupCloseTimer = setTimeout(() => {
+    document.getElementById('tl-popup').style.display = 'none';
+  }, 280);
+});
+
 document.getElementById('tl-popup').querySelector('.tlp-close').addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('tl-popup').style.display = 'none';
+  tlPopupLocked = false;
 });
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.tl-dot') && !e.target.closest('.tl-popup')) {
     document.getElementById('tl-popup').style.display = 'none';
+    tlPopupLocked = false;
   }
 });
 
@@ -2071,14 +2284,29 @@ function updateCardWidth() {
 
 function renderCard(e) {
   const sigId = 'gsig-' + e.qid;
+  const notes = e.notes || [];
+  const contribCount = (e.contributions || []).length;
+
+  // Render the contributor messages block (shared between both card types)
+  const messagesHTML = notes.length ? `
+    <div class="c-messages">
+      ${notes.map(n => `<div class="c-msg">${escapeHtml(n)}</div>`).join('')}
+    </div>
+  ` : '';
+  const contribTag = contribCount > 1
+    ? `<div class="c-contribs">${contribCount} marcas</div>`
+    : '';
+
   if (e.manual) {
     return `
       <div class="card manual">
-        <div class="c-badge">Sin Wikidata</div>
+        <div class="c-badge">Sin Wikipedia o Wikidata</div>
         <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
         <div class="c-name">${escapeHtml(e.name)}</div>
         <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
+        ${contribTag}
         <div class="c-note">Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong></div>
+        ${messagesHTML}
       </div>
     `;
   }
@@ -2089,6 +2317,8 @@ function renderCard(e) {
       <div class="c-name">${escapeHtml(e.name)}</div>
       <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
       <div class="c-langs">${langs}</div>
+      ${contribTag}
+      ${messagesHTML}
     </div>
   `;
 }
