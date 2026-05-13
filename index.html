@@ -682,6 +682,132 @@ textarea { resize: vertical; min-height: 64px; }
   opacity: 0.35;
   cursor: not-allowed;
 }
+/* ====== FILTROS (estilo Cartografías Narrativas) ====== */
+.filters {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(5,6,9,0.03), 0 4px 12px rgba(5,6,9,0.04);
+}
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.filter-row:last-of-type { margin-bottom: 0; }
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.filter-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--olive);
+  font-weight: 700;
+  margin-right: 8px;
+  min-width: 130px;
+}
+.filter-btn {
+  font-family: var(--body);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 13px;
+  border: 1.5px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.01em;
+}
+.filter-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.filter-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #FFFFFF;
+}
+.filter-btn.emotion-pill::before {
+  content: "";
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--c, var(--ink));
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ====== CARRUSEL DE TARJETAS ====== */
+.carousel-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  padding: 4px 2px;
+}
+.carousel-viewport::-webkit-scrollbar { display: none; }
+.cards-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+}
+.cards-track .card {
+  flex: 0 0 var(--qa-card-w, 220px);
+}
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--rule);
+}
+.carousel-info {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+.carousel-buttons {
+  display: flex;
+  gap: 6px;
+}
+.carousel-btn {
+  font-family: var(--body);
+  font-weight: 500;
+  font-size: 18px;
+  width: 36px; height: 36px;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.carousel-btn:hover:not(:disabled) {
+  background: var(--ink);
+  color: #FFFFFF;
+}
+.carousel-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -938,6 +1064,16 @@ footer a { color: var(--teal); }
       <button class="on" data-view="map">Mapa</button>
       <button data-view="timeline">Línea de tiempo</button>
     </div>
+    <div class="filters" id="map-filters" style="display:none">
+      <div class="filter-row">
+        <span class="filter-label">Emoción dominante</span>
+        <div class="filter-pills" id="emotion-pills"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">País</span>
+        <div class="filter-pills" id="map-country-pills"></div>
+      </div>
+    </div>
     <div id="map"></div>
     <div class="timeline-wrap" id="timeline">
       <h3>Aparición en Wikipedia</h3>
@@ -986,6 +1122,25 @@ footer a { color: var(--teal); }
   <div class="gallery-notice">
     Las tarjetas son permanentes. Si querés editar o quitar la tuya, abrí un issue en el <a href="https://github.com/[tu-usuaria]/queer-atlas/issues/new" target="_blank" rel="noopener">repositorio del proyecto</a>.
   </div>
+
+  <div class="filters" id="gallery-filters" style="display:none">
+    <div class="filter-row">
+      <span class="filter-label">Ordenar por</span>
+      <div class="filter-pills" id="sort-pills">
+        <button class="filter-btn active" data-sort="newest">Más recientes</button>
+        <button class="filter-btn" data-sort="oldest">Más antiguas</button>
+        <button class="filter-btn" data-sort="birthAsc">Por nacimiento ↑</button>
+        <button class="filter-btn" data-sort="birthDesc">Por nacimiento ↓</button>
+        <button class="filter-btn" data-sort="az">A–Z</button>
+        <button class="filter-btn" data-sort="za">Z–A</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">País</span>
+      <div class="filter-pills" id="country-pills"></div>
+    </div>
+  </div>
+
   <div id="gallery-content"></div>
 </section>
 
@@ -1122,11 +1277,11 @@ async function parsePerson(qid) {
     const podQid = claims.P20?.[0]?.mainsnak?.datavalue?.value?.id;
     if (podQid) coords = await wdGetPlaceCoords(podQid);
   }
-  // Fallback: country of citizenship
-  if (!coords) {
-    const cocQid = claims.P27?.[0]?.mainsnak?.datavalue?.value?.id;
-    if (cocQid) coords = await wdGetPlaceCoords(cocQid);
-  }
+  // Country of citizenship — always extract (used for filtering)
+  const cocQid = claims.P27?.[0]?.mainsnak?.datavalue?.value?.id;
+  const countryLabel = cocQid ? (await wdGetLabel(cocQid)) : null;
+  // Fallback for coords if no place of birth/death
+  if (!coords && cocQid) coords = await wdGetPlaceCoords(cocQid);
 
   const image = claims.P18?.[0]?.mainsnak?.datavalue?.value;
 
@@ -1142,6 +1297,7 @@ async function parsePerson(qid) {
     description,
     birthYear, deathYear,
     pobLabel,
+    countryLabel,
     coords,
     image,
     sitelinks: sitelinkMap,
@@ -1443,6 +1599,15 @@ function dominantEmotionColor(ems) {
   return color;
 }
 
+function dominantEmotionKey(ems) {
+  if (!ems) return null;
+  let max = 0, key = null;
+  ALL_AXES.forEach(e => {
+    if ((ems[e.key] || 0) > max) { max = ems[e.key]; key = e.key; }
+  });
+  return key; // null if all are 0
+}
+
 // ============================================================
 // SUBMIT
 // ============================================================
@@ -1643,7 +1808,8 @@ function renderMap() {
   if (!map) return;
   Object.values(markers).forEach(m => map.removeLayer(m));
   markers = {};
-  entries.forEach(e => {
+  const visible = applyMapFilters(entries);
+  visible.forEach(e => {
     if (!e.coords) return;
     const isManual = !!e.manual;
     const color = isManual ? '#B0C7BD' : dominantEmotionColor(e.emotions);
@@ -1680,7 +1846,7 @@ function renderTimeline() {
   decadesEl.innerHTML = '';
   document.getElementById('tl-popup').style.display = 'none';
 
-  const withYear = entries.filter(e => e.birthYear && !e.manual);
+  const withYear = applyMapFilters(entries.filter(e => e.birthYear && !e.manual));
   if (!withYear.length) {
     const empty = document.createElement('div');
     empty.className = 'tl-empty';
@@ -1770,42 +1936,241 @@ document.querySelectorAll('.map-toggle button').forEach(b => {
 // ============================================================
 // GALLERY
 // ============================================================
-function renderGallery() {
-  const wrap = document.getElementById('gallery-content');
-  if (!entries.length) {
-    wrap.innerHTML = '<div class="empty-gallery">Todavía no hay personas en el atlas. Buscá una arriba o sumá una manualmente desde el buscador.</div>';
-    return;
+// ============================================================
+// FILTERS + CAROUSEL STATE
+// ============================================================
+let filterEmotion = '';   // '' = todas, else axis key
+let filterCountry = '';   // gallery: '' = todos, country label, or '__none'
+let filterMapCountry = ''; // map: same scheme, independent state
+let filterSort = 'newest'; // newest | oldest | birthAsc | birthDesc | az | za
+
+function sortEntries(arr, mode) {
+  const a = arr.slice();
+  switch (mode) {
+    case 'oldest':
+      return a.sort((x, y) => (x.submitted_at || '').localeCompare(y.submitted_at || ''));
+    case 'birthAsc':
+      return a.sort((x, y) => (x.birthYear ?? Infinity) - (y.birthYear ?? Infinity));
+    case 'birthDesc':
+      return a.sort((x, y) => (y.birthYear ?? -Infinity) - (x.birthYear ?? -Infinity));
+    case 'az':
+      return a.sort((x, y) => x.name.localeCompare(y.name, 'es'));
+    case 'za':
+      return a.sort((x, y) => y.name.localeCompare(x.name, 'es'));
+    case 'newest':
+    default:
+      return a.sort((x, y) => (y.submitted_at || '').localeCompare(x.submitted_at || ''));
   }
-  const cards = entries.slice().reverse().map(e => {
-    const sigId = 'gsig-' + e.qid;
-    if (e.manual) {
-      return `
-        <div class="card manual">
-          <div class="c-badge">Sin Wikidata</div>
-          <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
-          <div class="c-name">${escapeHtml(e.name)}</div>
-          <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
-          <div class="c-note">Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong></div>
-        </div>
-      `;
+}
+
+function applyGalleryFilters(arr) {
+  return arr.filter(e => {
+    if (filterCountry) {
+      const c = e.countryLabel || '__none';
+      if (filterCountry === '__none' ? c !== '__none' : c !== filterCountry) return false;
     }
-    const langs = LANGS.map(l => `<span class="${e.sitelinks[l.code] ? 'y' : 'n'}">${l.label}</span>`).join('');
+    return true;
+  });
+}
+
+function applyMapFilters(arr) {
+  return arr.filter(e => {
+    if (filterEmotion && dominantEmotionKey(e.emotions) !== filterEmotion) return false;
+    if (filterMapCountry) {
+      const c = e.countryLabel || '__none';
+      if (filterMapCountry === '__none' ? c !== '__none' : c !== filterMapCountry) return false;
+    }
+    return true;
+  });
+}
+
+function renderEmotionFilter() {
+  const wrap = document.getElementById('emotion-pills');
+  if (!wrap) return;
+  const pills = [
+    `<button class="filter-btn ${filterEmotion === '' ? 'active' : ''}" data-emotion="">Todas</button>`,
+    ...ALL_AXES.map(a =>
+      `<button class="filter-btn emotion-pill ${filterEmotion === a.key ? 'active' : ''}" data-emotion="${a.key}" style="--c:${a.color}">${a.label}</button>`
+    )
+  ];
+  wrap.innerHTML = pills.join('');
+  wrap.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterEmotion = btn.dataset.emotion;
+      renderEmotionFilter();
+      renderMap();
+      if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+    });
+  });
+}
+
+function renderCountryPills(containerId, currentValue, onChange) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  const countries = new Set();
+  let hasNone = false;
+  entries.forEach(e => {
+    if (e.countryLabel) countries.add(e.countryLabel);
+    else hasNone = true;
+  });
+  const sortedCountries = Array.from(countries).sort((a, b) => a.localeCompare(b, 'es'));
+  const pills = [
+    `<button class="filter-btn ${currentValue === '' ? 'active' : ''}" data-country="">Todos</button>`,
+    ...sortedCountries.map(c =>
+      `<button class="filter-btn ${currentValue === c ? 'active' : ''}" data-country="${escapeHtml(c)}">${escapeHtml(c)}</button>`
+    ),
+  ];
+  if (hasNone) {
+    pills.push(`<button class="filter-btn ${currentValue === '__none' ? 'active' : ''}" data-country="__none">Sin país</button>`);
+  }
+  wrap.innerHTML = pills.join('');
+  wrap.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => onChange(btn.dataset.country));
+  });
+}
+
+function renderCountryFilter() {
+  renderCountryPills('country-pills', filterCountry, (val) => {
+    filterCountry = val;
+    renderGallery();
+  });
+}
+
+function renderMapCountryFilter() {
+  renderCountryPills('map-country-pills', filterMapCountry, (val) => {
+    filterMapCountry = val;
+    renderMapCountryFilter(); // re-render to update active state
+    renderMap();
+    if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+  });
+}
+
+function renderSortFilter() {
+  const wrap = document.getElementById('sort-pills');
+  if (!wrap) return;
+  wrap.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === filterSort);
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', () => {
+        filterSort = btn.dataset.sort;
+        renderGallery();
+      });
+    }
+  });
+}
+
+function updateCardWidth() {
+  const viewport = document.getElementById('cards-viewport');
+  if (!viewport) return;
+  const vw = viewport.clientWidth;
+  const gap = 16;
+  const cardWidth = Math.max(180, Math.floor((vw - 4 * gap) / 5));
+  document.documentElement.style.setProperty('--qa-card-w', cardWidth + 'px');
+}
+
+function renderCard(e) {
+  const sigId = 'gsig-' + e.qid;
+  if (e.manual) {
     return `
-      <div class="card">
+      <div class="card manual">
+        <div class="c-badge">Sin Wikidata</div>
         <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
         <div class="c-name">${escapeHtml(e.name)}</div>
         <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
-        <div class="c-langs">${langs}</div>
+        <div class="c-note">Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong></div>
       </div>
     `;
-  }).join('');
-  wrap.innerHTML = `<div class="cards">${cards}</div>`;
+  }
+  const langs = LANGS.map(l => `<span class="${e.sitelinks[l.code] ? 'y' : 'n'}">${l.label}</span>`).join('');
+  return `
+    <div class="card">
+      <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
+      <div class="c-name">${escapeHtml(e.name)}</div>
+      <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
+      <div class="c-langs">${langs}</div>
+    </div>
+  `;
+}
 
-  entries.forEach(e => {
+function renderGallery() {
+  const wrap = document.getElementById('gallery-content');
+  const filtersWrap = document.getElementById('gallery-filters');
+
+  if (!entries.length) {
+    if (filtersWrap) filtersWrap.style.display = 'none';
+    wrap.innerHTML = '<div class="empty-gallery">Todavía no hay personas en el atlas. Buscá una arriba o sumá una manualmente desde el buscador.</div>';
+    return;
+  }
+
+  if (filtersWrap) filtersWrap.style.display = 'block';
+  renderSortFilter();
+  renderCountryFilter();
+
+  const filtered = applyGalleryFilters(entries);
+  const sorted = sortEntries(filtered, filterSort);
+
+  if (!sorted.length) {
+    wrap.innerHTML = '<div class="empty-gallery">Sin tarjetas para los filtros actuales.</div>';
+    return;
+  }
+
+  const cardsHTML = sorted.map(renderCard).join('');
+  const showCarousel = sorted.length > 5;
+  wrap.innerHTML = `
+    <div class="carousel-viewport" id="cards-viewport">
+      <div class="cards-track" id="cards-track">${cardsHTML}</div>
+    </div>
+    ${showCarousel ? `
+      <div class="carousel-controls">
+        <div class="carousel-info" id="carousel-info"></div>
+        <div class="carousel-buttons">
+          <button class="carousel-btn" id="carousel-prev" aria-label="Anterior">‹</button>
+          <button class="carousel-btn" id="carousel-next" aria-label="Siguiente">›</button>
+        </div>
+      </div>
+    ` : ''}
+  `;
+
+  // Sizing for the carousel
+  updateCardWidth();
+
+  // Render signatures
+  sorted.forEach(e => {
     const svg = document.getElementById('gsig-' + e.qid);
     if (svg) renderSignature(svg, e.emotions);
   });
+
+  if (showCarousel) wireCarousel(sorted.length);
 }
+
+function wireCarousel(total) {
+  const viewport = document.getElementById('cards-viewport');
+  const prev = document.getElementById('carousel-prev');
+  const next = document.getElementById('carousel-next');
+  const info = document.getElementById('carousel-info');
+  if (!viewport || !prev || !next || !info) return;
+
+  function step() {
+    const w = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--qa-card-w')) || 220;
+    return w + 16;
+  }
+  function update() {
+    prev.disabled = viewport.scrollLeft <= 1;
+    next.disabled = viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 1;
+    const visStart = Math.round(viewport.scrollLeft / step()) + 1;
+    const visEnd = Math.min(visStart + 4, total);
+    info.textContent = `${visStart}–${visEnd} de ${total} tarjetas`;
+  }
+  prev.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
+  next.addEventListener('click', () => viewport.scrollBy({ left: step(), behavior: 'smooth' }));
+  viewport.addEventListener('scroll', update);
+  update();
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('cards-viewport')) updateCardWidth();
+});
 
 // ============================================================
 // STATS
@@ -1822,6 +2187,17 @@ function renderStats() {
 
 function refreshAll() {
   renderStats();
+  // Show/hide map emotion filters based on whether there's anything to filter
+  const mapFilters = document.getElementById('map-filters');
+  if (mapFilters) {
+    if (entries.length) {
+      mapFilters.style.display = 'block';
+      renderEmotionFilter();
+      renderMapCountryFilter();
+    } else {
+      mapFilters.style.display = 'none';
+    }
+  }
   renderMap();
   renderGallery();
   refreshExportButtons();
