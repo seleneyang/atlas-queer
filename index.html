@@ -1007,7 +1007,7 @@ footer a { color: var(--teal); }
   <div class="ec-content">
     <div class="ec-kicker">Wikiproyecto:LGBT · Wikipedia en español</div>
     <h3>Evento del Mes</h3>
-    <p>Cada mes la comunidad elige un tema, país o categoría y crea biografías queer nuevas. Es donde nace la lista que alimenta este atlas.</p>
+    <p>Cada mes la comunidad elige un tema, país o categoría y crea biografías queer nuevas. Es donde nace la lista que alimenta este atlas — sumate al desafío activo.</p>
   </div>
   <a class="ec-link" href="https://es.wikipedia.org/wiki/Wikiproyecto:LGBT/Evento_del_mes" target="_blank" rel="noopener">
     Ir al evento <span class="arrow">→</span>
@@ -1132,6 +1132,10 @@ footer a { color: var(--teal); }
         <span class="filter-label">País</span>
         <div class="filter-pills" id="map-country-pills"></div>
       </div>
+      <div class="filter-row">
+        <span class="filter-label">Cuenta con biografía</span>
+        <div class="filter-pills" id="bio-pills"></div>
+      </div>
     </div>
     <div id="map"></div>
     <div class="timeline-wrap" id="timeline">
@@ -1206,8 +1210,8 @@ footer a { color: var(--teal); }
 </section>
 
 <footer>
-  <div>Queer Atlas · prototipo en construcción. Datos en proyecto de Supabase.</div>
-  <div>Construido gracias a la información de Wikiproyecto:LGBT · Wikipedia en español</div>
+  <div>Queer Atlas · prototipo en construcción. Datos en LocalStorage (no se envían a ningún servidor).</div>
+  <div>Construido en diálogo con el Wikiproyecto:LGBT · Wikipedia en español</div>
 </footer>
 
 </div>
@@ -2333,7 +2337,16 @@ document.querySelectorAll('.map-toggle button').forEach(b => {
 let filterEmotion = '';   // '' = todas, else axis key
 let filterCountry = '';   // gallery: '' = todos, country label, or '__none'
 let filterMapCountry = ''; // map: same scheme, independent state
+let filterMapBio = '';    // map: '' = todas, 'yes' = con biografía, 'no' = sin
 let filterSort = 'newest'; // newest | oldest | birthAsc | birthDesc | az | za
+
+// A person "has a biography" if they have at least one Wikipedia article
+// in any of the tracked languages. Manual entries (no Wikidata) never do.
+function hasBiography(entry) {
+  if (entry.manual) return false;
+  if (!entry.sitelinks) return false;
+  return LANGS.some(l => entry.sitelinks[l.code]);
+}
 
 function sortEntries(arr, mode) {
   const a = arr.slice();
@@ -2370,6 +2383,11 @@ function applyMapFilters(arr) {
     if (filterMapCountry) {
       const c = e.countryLabel || '__none';
       if (filterMapCountry === '__none' ? c !== '__none' : c !== filterMapCountry) return false;
+    }
+    if (filterMapBio) {
+      const hasIt = hasBiography(e);
+      if (filterMapBio === 'yes' && !hasIt) return false;
+      if (filterMapBio === 'no' && hasIt) return false;
     }
     return true;
   });
@@ -2433,6 +2451,27 @@ function renderMapCountryFilter() {
     renderMapCountryFilter(); // re-render to update active state
     renderMap();
     if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+  });
+}
+
+function renderBioFilter() {
+  const wrap = document.getElementById('bio-pills');
+  if (!wrap) return;
+  const pills = [
+    { v: '', label: 'Todas' },
+    { v: 'yes', label: 'Sí tiene' },
+    { v: 'no', label: 'No tiene' },
+  ];
+  wrap.innerHTML = pills.map(p =>
+    `<button class="filter-btn ${filterMapBio === p.v ? 'active' : ''}" data-bio="${p.v}">${p.label}</button>`
+  ).join('');
+  wrap.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterMapBio = btn.dataset.bio;
+      renderBioFilter();
+      renderMap();
+      if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+    });
   });
 }
 
@@ -2602,6 +2641,7 @@ function refreshAll() {
       mapFilters.style.display = 'block';
       renderEmotionFilter();
       renderMapCountryFilter();
+      renderBioFilter();
     } else {
       mapFilters.style.display = 'none';
     }
