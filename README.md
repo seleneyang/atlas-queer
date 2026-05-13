@@ -39,26 +39,24 @@ Tres formas de empezar:
 
 - **Tocá una figura sugerida** en el panel "Inspirado en el Wikiproyecto:LGBT".
 - **Buscá por nombre** en el campo de búsqueda — autocompleta contra Wikidata.
-- **Explorá la galería** y el mapa para ver lo que ya cargaste (cada navegador tiene su propia galería local por ahora).
-- **Cambiá a vista de línea de tiempo** para ver las personas mapeadas por década de nacimiento. Cada punto es clickeable y abre un atajo directo al artículo de Wikipedia.
+- **Explorá la galería** y el mapa para ver lo que ya cargaste.
+- **Cambiá a vista de línea de tiempo** para ver a las personas mapeadas por década de nacimiento. Cada punto es clickeable y abre un atajo directo al artículo de Wikipedia.
 - **Descargá** los datos en CSV o JSON desde la galería — incluye URLs de Wikipedia en cada idioma y la fecha de creación de cada artículo, útil para análisis de brechas.
 
-No requiere instalación y sirve desde cualquier navegador. 
+No requiere instalación y funciona en cualquier navegador. 
 
 ---
 
 ## Tecnología
 
-HTML/CSS/JS vanilla, single page, todo client-side
-Wikidata API (`wbsearchentities`, `wbgetentities`) para búsqueda y datos biográficos
-Sitelinks de Wikidata para chequear existencia del artículo por idioma
-Wikipedia REST API (`/page/summary/`) para extractos biográficos
-MediaWiki API (`prop=revisions`) para fechas de creación de artículos en el export
-Leaflet + CARTO light basemap para el mapa
-LocalStorage para persistencia local
-Tipografías: Elms Sans + Quicksand (Google Fonts)
-
-No tiene un backend o dependencias instaladas, solo CDNs. 
+- HTML/CSS/JS vanilla, single-page, todo client-side
+- Wikidata API (`wbsearchentities`, `wbgetentities`) para búsqueda y datos biográficos
+- Sitelinks de Wikidata para chequear existencia del artículo por idioma
+- Wikipedia REST API (`/page/summary/`) para extractos biográficos
+- MediaWiki API (`prop=revisions`) para fechas de creación de artículos en el export
+- Leaflet + CARTO light basemap para el mapa
+- Base cargada en Supabase.com
+- Tipografías: Elms Sans + Quicksand (Google Fonts)
 
 ---
 
@@ -92,4 +90,4 @@ Código bajo licencia [MIT](LICENSE). Forkealo, adaptalo, llevalo a tu comunidad
 
 ## Créditos
 
-Construido por **Selene Yang** con miras a presentar en [Queering Wiki 2026](https://meta.wikimedia.org/wiki/Queering_Wiki) (Montréal, 23–25 de octubre de 2026).
+Construido por **Selene Yang** con miras a su presentación en [Queering Wiki 2026](https://meta.wikimedia.org/wiki/Queering_Wiki) (Montréal, 23–25 de octubre de 2026).
