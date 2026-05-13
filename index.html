@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Elms+Sans:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root {
@@ -1174,6 +1175,7 @@ footer a { color: var(--teal); }
       <div class="g-sub">Las marcas de gratitud se acumulan aquí</div>
     </div>
     <div class="export-actions">
+      <button class="btn-export" id="btn-migrate" style="display:none">↑ Subir mi galería local</button>
       <button class="btn-export" id="btn-csv" disabled>↓ Descargar CSV</button>
       <button class="btn-export" id="btn-json" disabled>↓ JSON</button>
     </div>
@@ -1253,25 +1255,178 @@ const SEED = [
 ];
 
 const STORAGE_KEY = 'queer_atlas_entries_v2';
+const MIGRATION_FLAG_KEY = 'queer_atlas_migrated_supabase_v1';
+
+// ============================================================
+// SUPABASE — collective backend
+// ============================================================
+// Configuration. To disable Supabase and run in localStorage-only mode,
+// blank out either of these constants.
+const SUPABASE_URL = 'https://hfxhtguuohnbxsktukes.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmeGh0Z3V1b2huYnhza3R1a2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODUxMzMsImV4cCI6MjA5NDI2MTEzM30.aT1vxOXD9U6DYSN9qiRM6s6m5oUT73FYOH8iPX2F5pA';
+
+let supabaseClient = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY && typeof window.supabase !== 'undefined') {
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      realtime: { params: { eventsPerSecond: 5 } },
+    });
+  } catch (e) {
+    console.warn('Could not init Supabase client:', e);
+  }
+}
 
 // ============================================================
 // STATE
 // ============================================================
 let current = null;   // person being edited
-let entries = loadEntries();
+let entries = loadEntriesFromCache(); // sync: starts from localStorage cache
 let map, markers = {};
 
 // ============================================================
 // PERSISTENCE
 // ============================================================
-function loadEntries() {
+// localStorage acts as a fast cache. The remote DB (Supabase) is the
+// source of truth when configured. On init we hydrate from cache (instant)
+// and then refresh from remote (slightly slower, but authoritative).
+
+function loadEntriesFromCache() {
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     return raw.map(migrateEntry);
   } catch (e) { return []; }
 }
-function saveEntries() {
+
+function cacheEntries() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+// Pre-Supabase function — kept as alias for back-compat with anything that
+// expected synchronous save. After Supabase init, contributions are pushed
+// via saveContribution() instead.
+function saveEntries() {
+  cacheEntries();
+}
+
+// Map a database `people` row + grouped contributions into our entry shape.
+function rowToEntry(p, contribs) {
+  return migrateEntry({
+    qid: p.qid,
+    name: p.name,
+    description: p.description,
+    birthYear: p.birth_year,
+    deathYear: p.death_year,
+    pobLabel: p.pob_label,
+    countryLabel: p.country_label,
+    coords: p.coords,
+    image: p.image,
+    sitelinks: p.sitelinks || {},
+    manual: !!p.manual,
+    contributions: (contribs || []).map(c => ({
+      emotions: c.emotions || {},
+      note: c.note || '',
+      submitted_at: c.submitted_at,
+    })),
+    submitted_at: p.created_at,
+  });
+}
+
+async function loadEntriesFromRemote() {
+  if (!supabaseClient) return null;
+  const [pRes, cRes] = await Promise.all([
+    supabaseClient.from('people').select('*'),
+    supabaseClient.from('contributions').select('*').order('submitted_at', { ascending: true }),
+  ]);
+  if (pRes.error) throw pRes.error;
+  if (cRes.error) throw cRes.error;
+
+  // Group contributions by person_qid
+  const byPerson = {};
+  (cRes.data || []).forEach(c => {
+    (byPerson[c.person_qid] = byPerson[c.person_qid] || []).push(c);
+  });
+  return (pRes.data || []).map(p => rowToEntry(p, byPerson[p.qid] || []));
+}
+
+// Write a single contribution + upsert the person row.
+async function saveContribution(person, contribution) {
+  if (!supabaseClient) {
+    cacheEntries();
+    return;
+  }
+  const personRow = {
+    qid: person.qid,
+    name: person.name,
+    description: person.description ?? null,
+    birth_year: person.birthYear ?? null,
+    death_year: person.deathYear ?? null,
+    pob_label: person.pobLabel ?? null,
+    country_label: person.countryLabel ?? null,
+    coords: person.coords ?? null,
+    image: person.image ?? null,
+    sitelinks: person.sitelinks || {},
+    manual: !!person.manual,
+  };
+  const { error: pErr } = await supabaseClient.from('people').upsert(personRow, { onConflict: 'qid' });
+  if (pErr) throw pErr;
+  const { error: cErr } = await supabaseClient.from('contributions').insert({
+    person_qid: person.qid,
+    emotions: contribution.emotions || {},
+    note: contribution.note || '',
+  });
+  if (cErr) throw cErr;
+}
+
+// Update just the person row (used by backfillCountries).
+async function updatePersonRow(person) {
+  if (!supabaseClient) {
+    cacheEntries();
+    return;
+  }
+  const { error } = await supabaseClient.from('people').upsert({
+    qid: person.qid,
+    name: person.name,
+    description: person.description ?? null,
+    birth_year: person.birthYear ?? null,
+    death_year: person.deathYear ?? null,
+    pob_label: person.pobLabel ?? null,
+    country_label: person.countryLabel ?? null,
+    coords: person.coords ?? null,
+    image: person.image ?? null,
+    sitelinks: person.sitelinks || {},
+    manual: !!person.manual,
+  }, { onConflict: 'qid' });
+  if (error) throw error;
+}
+
+// Subscribe to real-time changes so other browsers' contributions appear live.
+let realtimeChannel = null;
+let realtimeReloadTimer = null;
+function subscribeToRealtime() {
+  if (!supabaseClient || realtimeChannel) return;
+  const debouncedReload = () => {
+    clearTimeout(realtimeReloadTimer);
+    realtimeReloadTimer = setTimeout(refreshFromRemote, 400);
+  };
+  realtimeChannel = supabaseClient
+    .channel('atlas-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'people' }, debouncedReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contributions' }, debouncedReload)
+    .subscribe();
+}
+
+async function refreshFromRemote() {
+  if (!supabaseClient) return;
+  try {
+    const remote = await loadEntriesFromRemote();
+    if (remote) {
+      entries = remote;
+      cacheEntries();
+      refreshAll();
+    }
+  } catch (e) {
+    console.warn('Refresh from remote failed:', e);
+  }
 }
 
 // Old entries had `emotions` + `note` directly on the entry.
@@ -1738,7 +1893,7 @@ function clearSelection() {
 document.getElementById('btn-cancel').addEventListener('click', clearSelection);
 document.getElementById('btn-close-detail').addEventListener('click', clearSelection);
 
-document.getElementById('btn-submit').addEventListener('click', () => {
+document.getElementById('btn-submit').addEventListener('click', async () => {
   if (!current) return;
   if (!current.coords) {
     showToast('No tenemos coordenadas para esta persona — ubicala manualmente.');
@@ -1765,9 +1920,15 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     submitted_at: new Date().toISOString(),
   };
 
+  const submitBtn = document.getElementById('btn-submit');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Guardando…';
+
+  // OPTIMISTIC LOCAL UPDATE — show the result immediately
   const existingIndex = entries.findIndex(e => e.qid === current.qid);
+  const personSnapshot = { ...current };
   if (existingIndex >= 0) {
-    // Person already exists — append this contribution to the existing entry
     const existing = entries[existingIndex];
     existing.contributions = existing.contributions || [];
     existing.contributions.push(newContribution);
@@ -1775,7 +1936,6 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     existing.notes = existing.contributions.map(c => (c.note || '').trim()).filter(Boolean);
     existing.last_contribution_at = newContribution.submitted_at;
   } else {
-    // Brand new entry
     const newEntry = {
       ...current,
       contributions: [newContribution],
@@ -1787,20 +1947,38 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     delete newEntry.note;
     entries.push(newEntry);
   }
-
-  saveEntries();
+  cacheEntries();
   clearManualPreview();
   manualMode = false;
   refreshAll();
 
-  const isAdd = existingIndex >= 0;
-  showToast(isAdd ? `Tu marca se sumó a ${current.name}.` : `${current.name} sumada al atlas.`);
+  // PUSH TO REMOTE
+  let saveOk = true;
+  try {
+    await saveContribution(personSnapshot, newContribution);
+  } catch (e) {
+    console.warn('Supabase save failed:', e);
+    saveOk = false;
+    // Reload from remote to revert the optimistic local change
+    showToast('No se pudo guardar en la base colectiva. Reintentá en un momento.');
+    await refreshFromRemote();
+  }
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = originalText;
+
+  if (saveOk) {
+    const isAdd = existingIndex >= 0;
+    showToast(isAdd ? `Tu marca se sumó a ${personSnapshot.name}.` : `${personSnapshot.name} sumada al atlas.`);
+  }
   current = null;
   document.getElementById('panel-detail').style.display = 'none';
   document.getElementById('panel-manual').style.display = 'none';
   document.getElementById('panel-emotions').style.display = 'none';
   document.getElementById('below-map').classList.remove('on');
   document.getElementById('note').value = '';
+  const notice = document.getElementById('add-existing-notice');
+  if (notice) notice.style.display = 'none';
 });
 
 // ============================================================
@@ -2582,23 +2760,95 @@ async function backfillCountries() {
   const toBackfill = entries.filter(e => !e.manual && e.countryLabel === undefined);
   if (!toBackfill.length) return;
 
-  let updated = 0;
+  const updatedEntries = [];
   for (const entry of toBackfill) {
     try {
       const ent = await wdGetEntity(entry.qid);
       if (!ent) continue;
       const cocQid = ent.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id;
       entry.countryLabel = cocQid ? (await wdGetLabel(cocQid)) : null;
-      updated++;
+      updatedEntries.push(entry);
     } catch (e) {
       // Network error — leave undefined so we retry next load
     }
   }
 
-  if (updated > 0) {
-    saveEntries();
+  if (updatedEntries.length > 0) {
+    cacheEntries();
     refreshAll();
-    showToast(`Actualizado: ${updated} ${updated === 1 ? 'país recuperado' : 'países recuperados'} desde Wikidata.`);
+    // Also push updates to Supabase (one row each)
+    if (supabaseClient) {
+      for (const e of updatedEntries) {
+        try { await updatePersonRow(e); }
+        catch (err) { console.warn('Backfill push failed for', e.qid, err); }
+      }
+    }
+    const n = updatedEntries.length;
+    showToast(`Actualizado: ${n} ${n === 1 ? 'país recuperado' : 'países recuperados'} desde Wikidata.`);
+  }
+}
+
+// ============================================================
+// MIGRATION: push local entries to Supabase (one-time)
+// ============================================================
+async function migrateLocalToRemote() {
+  if (!supabaseClient) {
+    showToast('Supabase no está configurado.');
+    return;
+  }
+  const btn = document.getElementById('btn-migrate');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Subiendo…';
+  let pushed = 0;
+  let failed = 0;
+
+  for (const entry of entries) {
+    const contribs = entry.contributions || [];
+    if (!contribs.length) continue;
+    try {
+      // Upsert person
+      await updatePersonRow(entry);
+      // Insert each contribution (with original timestamps if present)
+      for (const c of contribs) {
+        const { error } = await supabaseClient.from('contributions').insert({
+          person_qid: entry.qid,
+          emotions: c.emotions || {},
+          note: c.note || '',
+          submitted_at: c.submitted_at || new Date().toISOString(),
+        });
+        if (error) throw error;
+      }
+      pushed++;
+    } catch (e) {
+      console.warn('Migration failed for', entry.qid, e);
+      failed++;
+    }
+  }
+
+  localStorage.setItem(MIGRATION_FLAG_KEY, new Date().toISOString());
+  btn.style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = original;
+  showToast(failed === 0
+    ? `${pushed} ${pushed === 1 ? 'persona subida' : 'personas subidas'} a Supabase.`
+    : `Subidas ${pushed}, fallaron ${failed}. Revisá la consola del navegador.`);
+  // Pull fresh from remote so we see exactly what's there
+  await refreshFromRemote();
+}
+
+document.getElementById('btn-migrate').addEventListener('click', migrateLocalToRemote);
+
+function maybeShowMigrationButton(remoteCount) {
+  // Show the button when:
+  //  - Supabase is configured
+  //  - The migration flag isn't already set
+  //  - We have local entries that the remote doesn't seem to have
+  if (!supabaseClient) return;
+  if (localStorage.getItem(MIGRATION_FLAG_KEY)) return;
+  const localCount = entries.length;
+  if (localCount > 0 && remoteCount < localCount) {
+    document.getElementById('btn-migrate').style.display = '';
   }
 }
 
@@ -2606,8 +2856,28 @@ async function backfillCountries() {
 // INIT
 // ============================================================
 initMap();
-refreshAll();
-backfillCountries();
+refreshAll();             // shows cached entries instantly
+backfillCountries();      // runs in background
+
+// Then hydrate from Supabase and subscribe to live updates
+(async () => {
+  if (!supabaseClient) return;
+  try {
+    const remote = await loadEntriesFromRemote();
+    if (remote) {
+      const remoteCount = remote.length;
+      // Replace local state with remote (source of truth)
+      entries = remote;
+      cacheEntries();
+      refreshAll();
+      maybeShowMigrationButton(remoteCount);
+    }
+    subscribeToRealtime();
+  } catch (e) {
+    console.warn('Initial Supabase load failed:', e);
+    showToast('Sin conexión a la base colectiva. Mostrando datos locales.');
+  }
+})();
 </script>
 
 </body>
