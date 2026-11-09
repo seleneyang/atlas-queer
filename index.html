@@ -2,2980 +2,1413 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Queer Atlas — cartografía afectiva de biografías queer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Queer Atlas</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Elms+Sans:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,500&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-:root {
-  --bg: #FFFFFF;
-  --bg-soft: #F4F6F5;
-  --surface: #FFFFFF;
-  --ink: #050609;
-  --ink-soft: #2A2D2E;
-  --ink-mute: #717477;
-  --olive: #646536;
-  --teal: #0C7489;
-  --amber: #FFB30F;
-  --sage: #B0C7BD;
-  --sage-soft: #DCE6E1;
-  --rule: #DCE6E1;
-
-  --display: 'Elms Sans', system-ui, sans-serif;
-  --body: 'Quicksand', system-ui, sans-serif;
-
-  --e-adm: #FFB30F;
-  --e-deu: #646536;
-  --e-rab: #C24B1B;
-  --e-ter: #B0C7BD;
-  --e-ins: #0C7489;
-  --e-due: #050609;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--body);
-  font-size: 16px;
-  line-height: 1.55;
-  font-feature-settings: 'tnum' off;
-}
-
-.page { max-width: 1240px; margin: 0 auto; padding: 28px 32px 64px; }
-
-header.masthead {
-  background: var(--ink);
-  color: #FFFFFF;
-  padding: 36px 40px;
-  margin-bottom: 28px;
-  border-left: 6px solid var(--amber);
-  border-radius: 4px;
-}
-.kicker {
-  font-family: var(--body);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--amber);
-  margin-bottom: 14px;
-}
-h1 {
-  font-family: var(--display);
-  font-size: 64px;
-  font-weight: 500;
-  line-height: 0.98;
-  letter-spacing: -0.015em;
-  margin-bottom: 14px;
-  color: #FFFFFF;
-}
-.lede {
-  font-family: var(--body);
-  font-weight: 400;
-  font-size: 16px;
-  color: var(--sage);
-  max-width: 60ch;
-  line-height: 1.55;
-}
-
-.event-card {
-  display: flex;
-  gap: 22px;
-  align-items: center;
-  background: var(--sage);
-  border-left: 6px solid var(--amber);
-  border-radius: 4px;
-  padding: 22px 28px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-.event-card .ec-content { flex: 1; min-width: 280px; }
-.event-card .ec-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--olive);
-  margin-bottom: 6px;
-}
-.event-card h3 {
-  font-family: var(--display);
-  font-size: 30px;
-  font-weight: 500;
-  color: var(--ink);
-  line-height: 1;
-  margin-bottom: 10px;
-  letter-spacing: -0.01em;
-}
-.event-card p {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink-soft);
-  margin-bottom: 0;
-  max-width: 56ch;
-  line-height: 1.55;
-}
-.event-card a.ec-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--ink);
-  color: var(--amber);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 13px 20px;
-  border-radius: 3px;
-  text-decoration: none;
-  flex-shrink: 0;
-  font-family: var(--body);
-  transition: background 0.15s, color 0.15s, transform 0.1s;
-}
-.event-card a.ec-link:hover { background: var(--amber); color: var(--ink); }
-.event-card a.ec-link:active { transform: translateY(1px); }
-.event-card a.ec-link .arrow { font-size: 18px; line-height: 1; }
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 18px;
-  margin: 0 0 28px;
-  padding: 20px 0;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-}
-.stat-num {
-  font-family: var(--display);
-  font-size: 38px;
-  font-weight: 500;
-  line-height: 1;
-  font-feature-settings: 'tnum' on;
-  color: var(--olive);
-}
-.stat-num.warn { color: var(--amber); }
-.stat-num.danger { color: var(--teal); }
-.stat-lbl {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-top: 8px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 440px 1fr;
-  gap: 28px;
-}
-@media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
-
-.col-controls { display: flex; flex-direction: column; gap: 16px; }
-
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 22px;
-  position: relative;
-}
-.panel-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: 1.5px solid var(--ink);
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--body);
-  font-weight: 700;
-  transition: all 0.15s;
-  z-index: 5;
-}
-.panel-close:hover { background: var(--ink); color: #FFFFFF; }
-.panel h2 {
-  font-family: var(--display);
-  font-weight: 500;
-  font-size: 24px;
-  margin-bottom: 4px;
-  color: var(--ink);
-}
-.panel .panel-sub {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--olive);
-  margin-bottom: 14px;
-}
-
-.manual-form { display: flex; flex-direction: column; gap: 14px; }
-.m-field { display: flex; flex-direction: column; gap: 5px; }
-.m-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--olive);
-}
-.m-field input {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-soft);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  font-family: var(--body);
-  font-size: 14px;
-  color: var(--ink);
-}
-.m-field input:focus { outline: none; border-color: var(--teal); background: #FFFFFF; }
-.m-years { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-.m-loc {
-  padding: 14px 16px;
-  background: var(--bg-soft);
-  border: 1.5px dashed var(--teal);
-  border-radius: 3px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ink-soft);
-  font-weight: 500;
-  transition: all 0.2s;
-}
-.m-loc.captured {
-  background: rgba(176,199,189,0.25);
-  border-style: solid;
-  border-color: var(--sage);
-  color: var(--ink);
-}
-.m-loc-redo {
-  margin-left: 8px;
-  background: transparent;
-  border: 0;
-  color: var(--olive);
-  cursor: pointer;
-  font-family: var(--body);
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: underline;
-  padding: 0;
-}
-.m-loc-redo:hover { color: var(--ink); }
-
-.m-callout {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  font-style: italic;
-  padding: 11px 13px;
-  background: rgba(255,179,15,0.1);
-  border-left: 3px solid var(--amber);
-  border-radius: 0 3px 3px 0;
-}
-.m-callout strong { font-style: normal; color: var(--ink); }
-
-.add-existing-notice {
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  padding: 11px 14px;
-  background: rgba(12,116,137,0.08);
-  border-left: 3px solid var(--teal);
-  border-radius: 0 3px 3px 0;
-  margin-bottom: 16px;
-}
-.add-existing-notice strong { color: var(--ink); font-weight: 700; }
-
-.suggest-item.suggest-manual {
-  border-top: 1px solid var(--rule);
-  background: var(--bg-soft);
-}
-.suggest-item.suggest-manual .si-name { color: var(--olive); font-weight: 700; }
-.suggest-item.suggest-manual .si-desc { font-style: italic; }
-.suggest-item.suggest-manual:hover { background: var(--sage-soft); }
-
-input[type="text"], input[type="search"], textarea {
-  width: 100%;
-  padding: 11px 13px;
-  background: var(--bg-soft);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  font: 500 14px/1.4 var(--body);
-  color: var(--ink);
-}
-input[type="text"]:focus, input[type="search"]:focus, textarea:focus {
-  outline: 2px solid var(--amber);
-  outline-offset: -2px;
-  border-color: transparent;
-}
-textarea { resize: vertical; min-height: 64px; }
-
-.search-wrap { position: relative; }
-.suggest {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-  background: var(--surface); border: 1px solid var(--rule);
-  max-height: 280px; overflow-y: auto;
-  z-index: 1000; display: none;
-  border-radius: 4px;
-  box-shadow: 0 4px 14px rgba(5, 6, 9, 0.08);
-}
-.suggest.open { display: block; }
-.suggest-item {
-  padding: 10px 13px;
-  border-bottom: 1px solid var(--rule);
-  cursor: pointer;
-}
-.suggest-item:last-child { border-bottom: 0; }
-.suggest-item:hover, .suggest-item.active { background: var(--sage-soft); }
-.suggest-item .si-name { font-weight: 600; }
-.suggest-item .si-desc { font-size: 12px; color: var(--ink-mute); margin-top: 2px; font-weight: 500; }
-
-.detail {
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 14px;
-  background: var(--bg-soft);
-  border-left: 4px solid var(--amber);
-  margin: 14px 0;
-  border-radius: 0 4px 4px 0;
-}
-.detail.empty { color: var(--ink-mute); display: block; padding: 14px 16px; border-left-color: var(--rule); }
-.portrait {
-  width: 64px; height: 64px;
-  background: var(--sage);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--display); font-size: 22px; font-weight: 500;
-  color: var(--ink);
-  overflow: hidden;
-  border-radius: 4px;
-}
-.portrait img { width: 100%; height: 100%; object-fit: cover; }
-.d-name { font-family: var(--display); font-size: 22px; font-weight: 500; line-height: 1.1; color: var(--ink); }
-.d-meta { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
-.d-desc { font-size: 13px; color: var(--olive); margin-top: 6px; font-weight: 500; }
-.d-qid {
-  display: inline-block; margin-top: 6px;
-  font-family: ui-monospace, 'SF Mono', Monaco, monospace;
-  font-size: 11px; color: var(--ink-mute);
-}
-
-.sliders { margin: 8px 0 4px; }
-
-.pain-section {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px dashed var(--olive);
-}
-.pain-section .pain-label {
-  font-family: var(--display);
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--ink);
-  margin-bottom: 2px;
-  letter-spacing: -0.005em;
-}
-.pain-section .pain-sub {
-  font-size: 12px;
-  color: var(--olive);
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-style: italic;
-}
-.pain-section .sliders { margin-top: 4px; }
-.pain-section .slider { margin: 6px 0; }
-.slider {
-  display: grid;
-  grid-template-columns: 96px 1fr 28px;
-  align-items: center;
-  gap: 12px;
-  margin: 10px 0;
-  font-size: 13px;
-}
-.s-label { font-weight: 700; color: var(--ink); }
-.s-input { width: 100%; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; height: 18px; }
-.s-input::-webkit-slider-runnable-track { height: 4px; background: var(--sage-soft); border-radius: 2px; }
-.s-input::-moz-range-track { height: 4px; background: var(--sage-soft); border-radius: 2px; }
-.s-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--c, var(--ink)); border-radius: 50%; margin-top: -6px; cursor: pointer; border: 2px solid var(--ink); box-sizing: border-box; }
-.s-input::-moz-range-thumb { width: 16px; height: 16px; background: var(--c, var(--ink)); border-radius: 50%; border: 2px solid var(--ink); cursor: pointer; }
-.s-num { text-align: right; font-feature-settings: 'tnum' on; color: var(--olive); font-size: 14px; font-weight: 700; }
-
-.langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
-.lang {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 5px 10px; font-size: 11px; font-weight: 700;
-  letter-spacing: 0.06em; border-radius: 3px;
-}
-.lang.yes { background: var(--sage); color: var(--ink); }
-.lang.no { background: var(--amber); color: var(--ink); }
-.lang.check { background: var(--sage-soft); color: var(--ink-mute); }
-
-.lang-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.btn-link {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 6px 11px; font-size: 12px; font-weight: 700;
-  background: transparent; border: 1.5px solid var(--ink); color: var(--ink);
-  border-radius: 3px; text-decoration: none; cursor: pointer;
-  font-family: var(--body);
-  transition: all 0.15s;
-}
-.btn-link:hover { background: var(--amber); border-color: var(--amber); }
-
-.row { display: flex; gap: 8px; align-items: center; }
-.row > * { flex: 1; }
-
-.btn {
-  padding: 13px 20px;
-  background: var(--amber);
-  color: var(--ink);
-  border: 0; border-radius: 3px;
-  font: 700 13px/1 var(--body);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.1s;
-}
-.btn:hover { background: var(--ink); color: var(--amber); }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { background: var(--sage-soft); color: var(--ink-mute); cursor: not-allowed; }
-.btn.secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
-.btn.secondary:hover { background: var(--ink); color: #FFFFFF; }
-
-.signature { background: var(--bg-soft); padding: 14px; text-align: center; border-radius: 4px; }
-.signature svg { width: 160px; height: 160px; display: block; margin: 0 auto; }
-.sig-cap { font-size: 11px; color: var(--olive); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 8px; font-weight: 700; }
-
-#map { width: 100%; height: 480px; background: var(--sage-soft); border: 1px solid var(--sage); border-radius: 4px; }
-
-.map-toggle {
-  display: inline-flex;
-  border: 2px solid var(--ink);
-  border-radius: 4px;
-  margin-bottom: 14px;
-  overflow: hidden;
-}
-.map-toggle button {
-  background: transparent;
-  border: 0;
-  padding: 9px 16px;
-  font: 700 12px/1 var(--body);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink);
-  cursor: pointer;
-}
-.map-toggle button.on { background: var(--ink); color: var(--amber); }
-
-.timeline-wrap { display: none; height: 480px; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 24px; overflow-y: auto; }
-.timeline-wrap.on { display: block; }
-
-.below-map {
-  display: none;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-}
-.below-map.on { display: flex; }
-.below-card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-}
-.below-card h3 {
-  font-family: var(--display);
-  font-size: 22px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: var(--ink);
-}
-.below-card .bc-source {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--olive);
-  margin-bottom: 14px;
-}
-.bio-extract {
-  font-size: 14px;
-  line-height: 1.65;
-  color: var(--ink-soft);
-  max-height: 220px;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  font-weight: 400;
-}
-.bio-extract p { margin: 0 0 10px; }
-.bio-extract p:last-child { margin-bottom: 0; }
-.wd-list {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 10px 18px;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-.wd-list dt {
-  font-weight: 700;
-  color: var(--olive);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding-top: 2px;
-}
-.wd-list dd { color: var(--ink); font-weight: 500; }
-.bc-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink);
-  text-decoration: none;
-  padding: 9px 14px;
-  border: 1.5px solid var(--ink);
-  border-radius: 3px;
-  transition: all 0.15s;
-  align-self: flex-start;
-  font-family: var(--body);
-}
-.bc-link:hover { background: var(--amber); border-color: var(--amber); }
-.bc-link .arrow { font-size: 14px; line-height: 1; }
-.timeline-wrap h3 { font-family: var(--display); font-size: 24px; font-weight: 500; margin-bottom: 4px; color: var(--ink); }
-.timeline-wrap .tl-sub { font-size: 11px; color: var(--olive); margin-bottom: 6px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
-.timeline-wrap .tl-hint { font-size: 13px; color: var(--ink-mute); margin-bottom: 18px; font-style: italic; line-height: 1.4; }
-.tl-axis { position: relative; padding: 24px 0; }
-.tl-line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--sage); }
-.tl-dot {
-  position: absolute; top: 50%; transform: translate(-50%, -50%);
-  width: 14px; height: 14px; border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid var(--ink);
-  transition: transform 0.15s;
-}
-.tl-dot:hover { transform: translate(-50%, -50%) scale(1.25); }
-.tl-popup {
-  position: absolute;
-  top: 50%;
-  background: var(--ink);
-  color: #FFFFFF;
-  padding: 14px 16px 12px;
-  border-radius: 4px;
-  font-size: 13px;
-  min-width: 200px;
-  max-width: 260px;
-  z-index: 100;
-  transform: translate(-50%, calc(-100% - 14px));
-  border-left: 4px solid var(--amber);
-}
-.tl-popup::after {
-  content: '';
-  position: absolute;
-  bottom: -7px;
-  left: 50%;
-  margin-left: -7px;
-  width: 0; height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 7px solid var(--ink);
-}
-.tlp-name {
-  font-family: var(--display);
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  padding-right: 22px;
-  line-height: 1.15;
-}
-.tlp-meta {
-  font-size: 11px;
-  color: var(--sage);
-  margin-bottom: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.tlp-link {
-  color: var(--amber);
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  letter-spacing: 0.04em;
-}
-.tlp-link:hover { text-decoration: underline; }
-.tlp-close {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
-  background: transparent;
-  border: 0;
-  color: var(--sage);
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0;
-  font-family: var(--body);
-}
-.tlp-close:hover { color: var(--amber); }
-.tl-decades { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-mute); margin-top: 18px; font-weight: 600; }
-
-.gallery {
-  margin-top: 36px;
-  padding-top: 28px;
-  border-top: 1px solid var(--rule);
-}
-.gallery-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 22px;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-.gallery-header > div:first-child {
-  flex: 1;
-  min-width: 220px;
-}
-.gallery h2 {
-  font-family: var(--display);
-  font-size: 34px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: var(--ink);
-}
-.gallery .g-sub { font-size: 11px; color: var(--olive); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; margin: 0; }
-.export-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.btn-export {
-  font-family: var(--body);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 10px 14px;
-  background: transparent;
-  color: var(--ink);
-  border: 1.5px solid var(--ink);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn-export:hover:not(:disabled) {
-  background: var(--amber);
-  border-color: var(--amber);
-}
-.btn-export:active:not(:disabled) { transform: translateY(1px); }
-.btn-export:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-/* ====== FILTROS (estilo Cartografías Narrativas) ====== */
-.filters {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 2px rgba(5,6,9,0.03), 0 4px 12px rgba(5,6,9,0.04);
-}
-.filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.filter-row:last-of-type { margin-bottom: 0; }
-.filter-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
-}
-.filter-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-  color: var(--olive);
-  font-weight: 700;
-  margin-right: 8px;
-  min-width: 130px;
-}
-.filter-btn {
-  font-family: var(--body);
-  font-weight: 500;
-  font-size: 13px;
-  padding: 6px 13px;
-  border: 1.5px solid var(--rule);
-  background: transparent;
-  color: var(--ink-soft);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.01em;
-}
-.filter-btn:hover {
-  border-color: var(--ink);
-  color: var(--ink);
-}
-.filter-btn.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #FFFFFF;
-}
-.filter-btn.emotion-pill::before {
-  content: "";
-  display: inline-block;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--c, var(--ink));
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-/* ====== CARRUSEL DE TARJETAS ====== */
-.carousel-viewport {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  padding: 4px 2px;
-}
-.carousel-viewport::-webkit-scrollbar { display: none; }
-.cards-track {
-  display: flex;
-  gap: 16px;
-  width: max-content;
-}
-.cards-track .card {
-  flex: 0 0 var(--qa-card-w, 220px);
-}
-.carousel-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--rule);
-}
-.carousel-info {
-  font-size: 12px;
-  color: var(--ink-mute);
-  font-style: italic;
-  letter-spacing: 0.02em;
-}
-.carousel-buttons {
-  display: flex;
-  gap: 6px;
-}
-.carousel-btn {
-  font-family: var(--body);
-  font-weight: 500;
-  font-size: 18px;
-  width: 36px; height: 36px;
-  padding: 0;
-  border: 1.5px solid var(--ink);
-  background: transparent;
-  color: var(--ink);
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  transition: all 0.15s;
-}
-.carousel-btn:hover:not(:disabled) {
-  background: var(--ink);
-  color: #FFFFFF;
-}
-.carousel-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 18px;
-}
-.card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 18px;
-  display: flex; flex-direction: column;
-  gap: 12px;
-  position: relative;
-  transition: border-color 0.15s;
-}
-.card:hover { border-color: var(--teal); }
-.card .c-sig { width: 100%; aspect-ratio: 1; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; border-radius: 3px; }
-.card .c-sig svg { width: 100%; height: 100%; }
-.card .c-name { font-family: var(--display); font-size: 19px; font-weight: 500; line-height: 1.15; color: var(--ink); }
-.card .c-meta { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; font-weight: 600; }
-.card .c-langs { display: flex; gap: 4px; }
-.card .c-langs span { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 2px; letter-spacing: 0.04em; }
-.card .c-langs .y { background: var(--sage); color: var(--ink); }
-.card .c-langs .n { background: var(--amber); color: var(--ink); }
-
-.card .c-contribs {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--teal);
-  background: rgba(12,116,137,0.08);
-  padding: 3px 8px;
-  border-radius: 2px;
-  align-self: flex-start;
-}
-.card .c-messages {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-}
-.card .c-msg {
-  font-size: 12px;
-  line-height: 1.45;
-  font-style: italic;
-  color: var(--ink-soft);
-  padding: 9px 11px 9px 14px;
-  background: var(--bg-soft);
-  border-left: 2px solid var(--olive);
-  border-radius: 0 3px 3px 0;
-  position: relative;
-}
-.card .c-msg::before {
-  content: '“';
-  position: absolute;
-  left: 4px; top: -2px;
-  font-family: var(--display);
-  font-size: 18px;
-  color: var(--olive);
-  font-style: normal;
-  opacity: 0.6;
-}
-
-.card.manual { background: var(--sage-soft); border-color: var(--sage); }
-.card.manual .c-sig { background: rgba(255,255,255,0.5); }
-.card.manual .c-badge {
-  position: absolute; top: 10px; right: 10px;
-  font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--olive);
-  background: rgba(255,255,255,0.7);
-  padding: 3px 7px; border-radius: 2px;
-}
-.card.manual .c-note {
-  font-size: 12px; line-height: 1.5;
-  color: var(--ink-soft);
-  font-style: italic;
-  padding: 10px 12px;
-  background: rgba(255,179,15,0.12);
-  border-left: 3px solid var(--amber);
-  border-radius: 0 3px 3px 0;
-  margin-top: 4px;
-}
-.card.manual .c-note strong { font-style: normal; color: var(--ink); }
-
-.gallery-notice {
-  font-size: 12px;
-  color: var(--ink-mute);
-  font-style: italic;
-  margin-bottom: 18px;
-  padding: 10px 14px;
-  background: var(--bg-soft);
-  border-left: 2px solid var(--olive);
-  border-radius: 0 3px 3px 0;
-  line-height: 1.55;
-}
-.gallery-notice a {
-  color: var(--ink);
-  font-weight: 700;
-  font-style: normal;
-  text-decoration: underline;
-  text-decoration-thickness: 1.5px;
-}
-.gallery-notice a:hover { color: var(--olive); }
-
-.empty-gallery {
-  padding: 40px;
-  text-align: center;
-  color: var(--ink-mute);
-  border: 1.5px dashed var(--sage);
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.suggested-pop {
-  margin-top: 12px;
-  padding: 14px;
-  background: var(--sage-soft);
-  border: 1px dashed var(--teal);
-  border-radius: 4px;
-}
-.suggested-pop .sp-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
-.sp-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.sp-item {
-  padding: 6px 11px; font-size: 12px; font-weight: 600;
-  background: var(--surface); border: 1px solid var(--ink); color: var(--ink);
-  cursor: pointer; border-radius: 3px;
-  font-family: var(--body);
-  transition: all 0.15s;
-}
-.sp-item:hover { background: var(--teal); color: #FFFFFF; border-color: var(--teal); }
-.sp-meta { font-size: 11px; color: var(--ink-mute); margin-top: 10px; font-weight: 500; }
-.sp-meta code { font-family: ui-monospace, monospace; font-size: 10px; background: var(--surface); padding: 1px 5px; border-radius: 2px; }
-
-.toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  background: var(--ink); color: var(--amber);
-  padding: 13px 22px; border-radius: 3px;
-  font-size: 13px; font-weight: 600;
-  z-index: 10000;
-  opacity: 0; transition: opacity 0.2s;
-  border-left: 4px solid var(--amber);
-}
-.toast.show { opacity: 1; }
-
-footer {
-  margin-top: 56px;
-  padding-top: 22px;
-  border-top: 2px solid var(--ink);
-  font-size: 12px;
-  color: var(--ink-mute);
-  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  font-weight: 500;
-}
-footer a { color: var(--teal); }
-
-.spinner {
-  display: inline-block;
-  width: 12px; height: 12px;
-  border: 2px solid var(--sage-soft);
-  border-top-color: var(--teal);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  vertical-align: middle;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.leaflet-popup-content { font-family: var(--body); font-size: 13px; }
-.leaflet-popup-content strong { font-family: var(--display); font-size: 16px; font-weight: 500; }
-</style>
 </head>
 <body>
 
-<div class="page">
+<style>
+  /* Layout: horizontal scrolling hero (3 panels), then vertical content below.
+     Textura: SVG grano + blobs semitransparentes.
+     Mezcla: Fraunces display + Instrument Serif italics + Space Grotesk body + Space Mono tiny. */
 
-<header class="masthead">
-  <div class="kicker">Cartografía afectiva · v0.1 prototipo</div>
-  <h1>Queer Atlas</h1>
-  <p class="lede">Mapeá a las figuras queer que te importan. Anclalas a un lugar. Decí qué le agradecés. Si Wikipedia no las tiene, el atlas te lleva al editor.</p>
-</header>
+  :root {
+    /* palette */
+    --ink:        #140A1F;      /* near-black with violet bias */
+    --cream:      #F5EFE3;      /* warm paper */
+    --cream-soft: #EBE3D2;
+    --aubergine:  #3B1C4F;      /* primary: deep queer purple */
+    --aubergine-deep: #26112F;
+    --amber:      #FFB82E;      /* electric amber */
+    --magenta:    #E6286B;      /* saturated pink-magenta */
+    --teal:       #118BA0;      /* kept from original, saturated */
+    --olive:      #7F7D3A;      /* kept from original, saturated */
+    --sage:       #C6D4C8;
+    --ink-mute:   rgba(20,10,31,0.55);
+    --rule:       rgba(20,10,31,0.12);
 
-<aside class="event-card">
-  <div class="ec-content">
-    <div class="ec-kicker">Wikiproyecto:LGBT · Wikipedia en español</div>
-    <h3>Evento del Mes</h3>
-    <p>Cada mes la comunidad elige un tema, país o categoría y crea biografías queer nuevas. Es donde nace la lista que alimenta este atlas — sumate al desafío activo.</p>
+    /* type */
+    --display: 'Fraunces', 'Times New Roman', serif;
+    --italic:  'Instrument Serif', 'Georgia', serif;
+    --body:    'Space Grotesk', system-ui, sans-serif;
+    --mono:    'Space Mono', ui-monospace, monospace;
+
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  /* ================================================================
+     GRAIN TEXTURE — SVG noise overlay across whole page
+     ================================================================ */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.04 0 0 0 0 0.12 0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ================================================================
+     HORIZONTAL SCROLL HERO — 3 panels side by side
+     ================================================================ */
+  .hero-rail {
+    position: relative;
+    height: min(720px, 92vh);
+    min-height: 580px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hero-rail::-webkit-scrollbar { display: none; }
+
+  .hero-track {
+    display: flex;
+    height: 100%;
+    width: max-content;
+  }
+
+  .hero-panel {
+    flex: 0 0 100vw;
+    height: 100%;
+    scroll-snap-align: start;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: max(48px, env(safe-area-inset-left, 0px));
+    padding-right: max(48px, env(safe-area-inset-right, 0px));
+    padding-block: 60px;
+    overflow: hidden;
+  }
+
+  /* --- Panel 1: título manifesto --- */
+  .hero-1 {
+    background:
+      radial-gradient(circle at 15% 85%, rgba(230,40,107,0.18), transparent 50%),
+      radial-gradient(circle at 85% 15%, rgba(255,184,46,0.25), transparent 55%),
+      var(--cream);
+  }
+  /* Organic blobs — SVG paths with irregular Bezier curves.
+     Positioned absolutely; mix-blend-mode multiply layers them against the cream ground. */
+  .organic-blob {
+    position: absolute;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  .organic-blob svg { width: 100%; height: 100%; display: block; }
+  .hero-1-blob {
+    width: 620px; height: 580px;
+    top: -140px; right: -160px;
+    opacity: 0.92;
+    animation: blob-drift-1 22s ease-in-out infinite;
+  }
+  .hero-1-blob-2 {
+    width: 380px; height: 340px;
+    bottom: -90px; left: 6%;
+    opacity: 0.55;
+    animation: blob-drift-2 28s ease-in-out infinite reverse;
+  }
+  @keyframes blob-drift-1 {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    33%      { transform: rotate(3deg) scale(1.03); }
+    66%      { transform: rotate(-2deg) scale(0.98); }
+  }
+  @keyframes blob-drift-2 {
+    0%, 100% { transform: rotate(0deg) translate(0, 0); }
+    50%      { transform: rotate(4deg) translate(12px, -8px); }
+  }
+
+  .hero-1-content {
+    position: relative;
+    z-index: 2;
+    max-width: 920px;
+  }
+  .masthead-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+    margin-bottom: 28px;
+    padding: 7px 12px 7px 10px;
+    background: rgba(255,184,46,0.35);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    transform: rotate(-1.2deg);
+  }
+  .masthead-kicker .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--magenta);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.75); }
+  }
+
+  .hero-1 h1 {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(64px, 11vw, 160px);
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 24px;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  }
+  .hero-1 h1 .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--magenta);
+    display: inline-block;
+    transform: translateY(0.05em);
+  }
+  .hero-1 h1 .amber-under {
+    position: relative;
+    display: inline-block;
+  }
+  .hero-1 h1 .amber-under::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -4px; bottom: 0.1em; height: 0.28em;
+    background: var(--amber);
+    z-index: -1;
+    transform: skewX(-6deg);
+  }
+
+  .hero-1-lede {
+    max-width: 580px;
+    font-family: var(--body);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 36px;
+  }
+  .hero-1-lede em {
+    font-family: var(--italic);
+    font-size: 24px;
+    font-style: italic;
+    color: var(--aubergine);
+  }
+
+  .scroll-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .scroll-hint-arrow {
+    width: 50px; height: 1.5px;
+    background: var(--ink);
+    position: relative;
+    animation: arrow-slide 2.4s ease-in-out infinite;
+  }
+  .scroll-hint-arrow::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    width: 10px; height: 10px;
+    border-right: 1.5px solid var(--ink);
+    border-top: 1.5px solid var(--ink);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  @keyframes arrow-slide {
+    0%, 100% { transform: translateX(0); opacity: 1; }
+    50% { transform: translateX(12px); opacity: 0.6; }
+  }
+
+  /* Prototipo seal */
+  .seal {
+    position: absolute;
+    bottom: 40px; right: 56px;
+    width: 140px; height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    animation: rotate-slow 24s linear infinite;
+  }
+  @keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .seal svg { width: 100%; height: 100%; }
+  .seal-text { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; fill: var(--ink); text-transform: uppercase; }
+  .seal-center {
+    position: absolute;
+    font-family: var(--italic); font-style: italic;
+    font-size: 28px; color: var(--magenta);
+    animation: rotate-slow 24s linear infinite reverse;
+  }
+
+  /* --- Panel 2: manifesto --- */
+  .hero-2 {
+    background:
+      linear-gradient(135deg, var(--aubergine-deep) 0%, var(--aubergine) 55%, #4F2766 100%);
+    color: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .hero-2-stripe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 10px;
+    background:
+      linear-gradient(90deg,
+        var(--amber) 0%, var(--amber) 15%,
+        var(--magenta) 15%, var(--magenta) 32%,
+        var(--teal) 32%, var(--teal) 48%,
+        var(--olive) 48%, var(--olive) 65%,
+        var(--sage) 65%, var(--sage) 82%,
+        var(--cream) 82%, var(--cream) 100%
+      );
+  }
+  .hero-2-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 28px;
+  }
+  .hero-2 h2 {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(42px, 5.5vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 36px;
+    font-variation-settings: 'opsz' 144;
+  }
+  .hero-2 h2 .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    color: var(--amber);
+    font-weight: 400;
+  }
+  .hero-2 h2 .strike {
+    text-decoration: line-through;
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--magenta);
+    opacity: 0.7;
+  }
+  .hero-2-body {
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(245,239,227,0.88);
+    max-width: 480px;
+    margin-bottom: 24px;
+  }
+
+  .hero-2-right {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* big affective signature */
+  .big-sig {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 1;
+  }
+  .big-sig svg { width: 100%; height: 100%; }
+  .sig-label {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cream);
+    opacity: 0.85;
+  }
+  .sig-label-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* --- Panel 3: evento del mes + CTA entrada --- */
+  .hero-3 {
+    background: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .hero-3-blob {
+    width: 520px; height: 480px;
+    bottom: -160px; right: -120px;
+    opacity: 0.88;
+    animation: blob-drift-1 26s ease-in-out infinite;
+  }
+
+  .month-event {
+    position: relative;
+    z-index: 2;
+    background: var(--amber);
+    border: 1.5px solid var(--ink);
+    padding: 36px 32px;
+    transform: rotate(-1.5deg);
+    box-shadow: 10px 10px 0 var(--aubergine);
+    max-width: 440px;
+  }
+  .month-event-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--amber);
+    padding: 5px 10px;
+    margin-bottom: 20px;
+  }
+  .month-event h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .month-event h3 .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .month-event p {
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+  .month-event .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: var(--ink);
+    padding: 14px 20px;
+    text-decoration: none;
+    border: 1.5px solid var(--ink);
+    transition: all 0.2s;
+  }
+  .month-event .cta:hover {
+    background: var(--magenta);
+    color: var(--cream);
+    border-color: var(--magenta);
+  }
+  .month-event .cta .arrow { font-family: var(--mono); font-weight: 700; }
+
+  .hero-3-start {
+    position: relative;
+    z-index: 2;
+  }
+  .hero-3-start h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 144;
+  }
+  .hero-3-start h3 .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    color: var(--teal);
+  }
+  .hero-3-start .lede {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    opacity: 0.8;
+    margin-bottom: 32px;
+    max-width: 380px;
+  }
+  .search-box {
+    position: relative;
+    max-width: 440px;
+  }
+  .search-box input {
+    width: 100%;
+    font-family: var(--body);
+    font-size: 17px;
+    padding: 18px 24px 18px 50px;
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 60px;
+    color: var(--ink);
+    outline: none;
+  }
+  .search-box input::placeholder {
+    color: var(--ink-mute);
+    font-style: italic;
+  }
+  .search-box .icon {
+    position: absolute;
+    left: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+  }
+
+  .suggested-names {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 440px;
+  }
+  .suggested-names .pill {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 13px;
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    border-radius: 100px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .suggested-names .pill:hover {
+    background: var(--magenta);
+    color: var(--cream);
+    border-color: var(--magenta);
+  }
+  .suggested-names .pill.featured {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .suggested-names .pill.featured:hover {
+    background: var(--magenta);
+    border-color: var(--magenta);
+  }
+
+  /* ================================================================
+     PANEL INDICATORS (dots at bottom of hero)
+     ================================================================ */
+  .panel-dots {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 50;
+  }
+  .panel-dot {
+    width: 32px; height: 4px;
+    background: rgba(20,10,31,0.25);
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+  }
+  .panel-dot.on {
+    background: var(--ink);
+  }
+  .hero-2 ~ .panel-dots .panel-dot { background: rgba(245,239,227,0.3); }
+  .hero-2 ~ .panel-dots .panel-dot.on { background: var(--amber); }
+
+  /* ================================================================
+     BELOW HERO — vertical content starts
+     ================================================================ */
+  .section {
+    padding-left: max(48px, env(safe-area-inset-left, 0px));
+    padding-right: max(48px, env(safe-area-inset-right, 0px));
+    padding-block: 80px 60px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+    margin-bottom: 20px;
+  }
+  .section-eyebrow::before {
+    content: '';
+    display: block;
+    width: 40px; height: 1.5px;
+    background: var(--aubergine);
+  }
+
+  .section h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(42px, 5.5vw, 76px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 48px;
+    max-width: 920px;
+    font-variation-settings: 'opsz' 144;
+  }
+  .section h2 .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    color: var(--magenta);
+    font-weight: 400;
+  }
+
+  /* STATS strip */
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 2px;
+    background: var(--ink);
+    border: 1.5px solid var(--ink);
+    margin-bottom: 72px;
+  }
+  .stat {
+    background: var(--cream);
+    padding: 28px 24px;
+    position: relative;
+  }
+  .stat-num {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: 72px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin-bottom: 8px;
+    font-variation-settings: 'opsz' 144;
+  }
+  .stat-num.c1 { color: var(--aubergine); }
+  .stat-num.c2 { color: var(--amber); }
+  .stat-num.c3 { color: var(--magenta); }
+  .stat-num.c4 { color: var(--teal); }
+  .stat-num.c5 { color: var(--olive); }
+  .stat-num.c6 { color: var(--ink); }
+  .stat-lbl {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+
+  /* MAP area */
+  .map-wrapper {
+    position: relative;
+    margin-bottom: 72px;
+  }
+
+  .view-toggle {
+    display: inline-flex;
+    gap: 4px;
+    background: var(--ink);
+    border: 1.5px solid var(--ink);
+    border-radius: 60px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .view-toggle button {
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    background: transparent;
+    border: 0;
+    color: var(--cream);
+    cursor: pointer;
+    border-radius: 60px;
+    transition: all 0.15s;
+  }
+  .view-toggle button.on {
+    background: var(--amber);
+    color: var(--ink);
+  }
+
+  /* FILTERS */
+  .filters-card {
+    background: rgba(255,255,255,0.4);
+    border: 1px solid var(--rule);
+    backdrop-filter: blur(10px);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+  }
+  .filter-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+  .filter-row:not(:last-child) {
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+  }
+  .filter-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+    font-weight: 700;
+    min-width: 140px;
+    padding-top: 7px;
+  }
+  .filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+  }
+  .filter-btn {
+    font-family: var(--body);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 6px 13px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .filter-btn.active {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .filter-btn.emo::before {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--c, var(--ink));
+    margin-right: 7px;
+    vertical-align: middle;
+  }
+
+  .map-canvas {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: #EBE3D2;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 1;
+  }
+  /* Neutralize OSM tiles so they read quietly under the editorial palette.
+     Desaturate, lift midtones, drop contrast a touch. Cream tint via sepia-blend. */
+  .map-canvas .leaflet-tile-pane {
+    filter: grayscale(0.85) brightness(1.08) contrast(0.88) sepia(0.12);
+  }
+  .map-canvas .leaflet-container {
+    background: #EBE3D2;
+    font-family: var(--mono);
+  }
+  .map-canvas .leaflet-control-attribution {
+    background: rgba(245,239,227,0.85);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+  }
+  .map-canvas .leaflet-control-attribution a { color: var(--aubergine); }
+  .map-canvas .leaflet-control-zoom a {
+    background: var(--cream);
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    font-family: var(--display);
+    font-weight: 500;
+  }
+  .map-canvas .leaflet-control-zoom a:hover {
+    background: var(--amber);
+  }
+  .qa-pin-marker {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    box-shadow: 0 2px 4px rgba(20,10,31,0.3);
+    transition: transform 0.15s;
+  }
+  .qa-pin-marker:hover { transform: scale(1.3); }
+  .map-pin {
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: transform 0.15s;
+    box-shadow: 0 2px 4px rgba(20,10,31,0.25);
+  }
+  .map-pin:hover {
+    transform: translate(-50%, -50%) scale(1.35);
+    z-index: 10;
+  }
+  .map-watermark {
+    position: absolute;
+    bottom: 12px; right: 16px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    opacity: 0.4;
+  }
+
+  /* GALLERY */
+  .gallery-hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 36px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .gallery-hd h2 {
+    margin-bottom: 0;
+  }
+  .gallery-hd-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-outline {
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-outline:hover {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    position: relative;
+    background: var(--cream-soft);
+    border: 1px solid var(--rule);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--aubergine);
+    box-shadow: 8px 8px 0 var(--aubergine);
+  }
+  .card.featured {
+    background: var(--aubergine);
+    color: var(--cream);
+    transform: rotate(-0.8deg);
+  }
+  .card.featured:hover {
+    transform: rotate(-0.8deg) translateY(-4px);
+    box-shadow: 8px 8px 0 var(--amber);
+  }
+
+  .card-sig {
+    aspect-ratio: 1;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .card.featured .card-sig {
+    background: var(--aubergine-deep);
+  }
+  .card-sig svg { width: 85%; height: 85%; }
+  /* Organic clip so the signature circles read as an ink blot rather than a perfect disk */
+  .card-sig { clip-path: path('M 20,100 C 20,40 60,10 120,15 C 180,20 220,55 215,115 C 210,175 170,210 110,205 C 50,200 20,160 20,100 Z'); }
+
+  .card-name {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variation-settings: 'opsz' 144;
+  }
+  .card-name .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .card-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    opacity: 0.7;
+  }
+  .card.featured .card-meta { color: var(--amber); opacity: 1; }
+
+  .card-langs {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .card-langs span {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    letter-spacing: 0.08em;
+  }
+  .card-langs .y {
+    background: var(--sage);
+    color: var(--ink);
+  }
+  .card-langs .n {
+    background: var(--amber);
+    color: var(--ink);
+  }
+  .card.featured .card-langs .y { background: var(--teal); color: var(--cream); }
+  .card.featured .card-langs .n { background: var(--amber); color: var(--ink); }
+
+  .card-msg {
+    font-family: var(--italic);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.45;
+    letter-spacing: 0.005em;
+    padding: 10px 12px;
+    border-left: 2px solid var(--magenta);
+    background: rgba(230,40,107,0.08);
+  }
+  .card.featured .card-msg {
+    background: rgba(255,184,46,0.15);
+    border-left-color: var(--amber);
+    color: var(--cream);
+  }
+
+  .card-contribs {
+    position: absolute;
+    top: -8px; right: -8px;
+    background: var(--magenta);
+    color: var(--cream);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 5px 10px;
+    border-radius: 100px;
+    transform: rotate(5deg);
+  }
+
+  /* FOOTER */
+  footer {
+    margin-top: 80px;
+    padding: 48px max(48px, env(safe-area-inset-left, 0px)) 48px max(48px, env(safe-area-inset-right, 0px));
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .footer-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  footer a { color: var(--amber); text-decoration: none; }
+  footer a:hover { color: var(--magenta); }
+
+  /* ========== responsive ========== */
+  @media (max-width: 760px) {
+    .hero-panel { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+    .hero-2, .hero-3 { grid-template-columns: 1fr; gap: 32px; }
+    .hero-2-right, .hero-3 .month-event { max-width: 100%; }
+    .big-sig { max-width: 320px; margin: 0 auto; }
+    .seal { width: 100px; height: 100px; bottom: 24px; right: 24px; }
+    .section { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); padding-block: 56px 40px; }
+    .stat-num { font-size: 56px; }
+    .gallery-hd { flex-direction: column; align-items: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<!-- =============================================================
+     HERO RAIL — horizontal scroll
+     ============================================================= -->
+<div class="hero-rail" id="heroRail">
+  <div class="hero-track">
+
+    <!-- Panel 1 -->
+    <section class="hero-panel hero-1">
+      <div class="organic-blob hero-1-blob">
+        <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="aub-grad" cx="30%" cy="30%">
+              <stop offset="0%" stop-color="#3B1C4F"/>
+              <stop offset="100%" stop-color="#26112F"/>
+            </radialGradient>
+          </defs>
+          <path d="M 460,120 C 540,180 560,280 520,370 C 490,440 410,490 320,480 C 220,470 130,420 100,330 C 70,240 110,140 190,90 C 260,50 380,60 460,120 Z" fill="url(#aub-grad)"/>
+        </svg>
+      </div>
+      <div class="organic-blob hero-1-blob-2">
+        <svg viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 320,80 C 370,130 380,210 340,270 C 300,330 210,340 140,300 C 70,260 40,180 70,110 C 100,40 180,20 250,40 C 285,50 300,60 320,80 Z" fill="#E6286B"/>
+        </svg>
+      </div>
+
+      <div class="hero-1-content">
+        <div class="masthead-kicker">
+          <span class="dot"></span>
+          <span>una cartografía queer · colectiva</span>
+        </div>
+
+        <h1>
+          Queer<br>
+          <span class="italic">Atlas</span><br>
+          <span class="amber-under">afectivo</span>
+        </h1>
+
+        <p class="hero-1-lede">
+          Una cartografía <em>colectiva</em> de biografías queer en Wikipedia. Lo que nos dieron, lo que todavía duele, lo que falta por escribir.
+        </p>
+
+        <div class="scroll-hint">
+          <span>Deslizá</span>
+          <span class="scroll-hint-arrow"></span>
+        </div>
+      </div>
+
+      <div class="seal">
+        <svg viewBox="0 0 160 160">
+          <defs>
+            <path id="circle" d="M 80,80 m -62,0 a 62,62 0 1,1 124,0 a 62,62 0 1,1 -124,0"/>
+          </defs>
+          <circle cx="80" cy="80" r="76" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+          <text class="seal-text">
+            <textPath href="#circle">memoria queer · afecto como método · wikipedia como archivo · </textPath>
+          </text>
+        </svg>
+        <span class="seal-center">*</span>
+      </div>
+    </section>
+
+    <!-- Panel 2 -->
+    <section class="hero-panel hero-2">
+      <div class="hero-2-stripe"></div>
+
+      <div>
+        <div class="hero-2-eyebrow">Manifesto · 01</div>
+        <h2>
+          Mapeamos lo que <span class="italic">sentimos</span><br>
+          no solo <span class="strike">lo que se escribió.</span>
+        </h2>
+        <p class="hero-2-body">
+          Wikipedia es un terreno disputado de memoria. Decidimos qué biografías anclan dónde, en qué idiomas sobreviven, y cuáles vidas quedan sin mapear porque les falta la documentación que el saber institucional exige.
+        </p>
+        <p class="hero-2-body">
+          El Atlas añade una capa: las emociones que estas figuras nos generan. Coraje, ternura, rabia, duelo. Firmas afectivas colectivas superpuestas.
+        </p>
+      </div>
+
+      <div class="hero-2-right">
+        <div class="big-sig">
+          <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="blur-sig"><feGaussianBlur stdDeviation="2"/></filter>
+            </defs>
+            <circle cx="250" cy="250" r="180" fill="#FFB82E" opacity="0.55"/>
+            <circle cx="220" cy="230" r="160" fill="#E6286B" opacity="0.5"/>
+            <circle cx="280" cy="270" r="140" fill="#118BA0" opacity="0.5"/>
+            <circle cx="240" cy="280" r="120" fill="#7F7D3A" opacity="0.5"/>
+            <circle cx="260" cy="220" r="100" fill="#C6D4C8" opacity="0.6"/>
+            <circle cx="245" cy="255" r="80" fill="#140A1F" opacity="0.3"/>
+            <circle cx="250" cy="250" r="4" fill="#F5EFE3"/>
+          </svg>
+          <div class="sig-label" style="top: 8%; left: 2%;">
+            <span class="sig-label-dot" style="background: #FFB82E;"></span>Coraje
+          </div>
+          <div class="sig-label" style="top: 22%; right: 2%;">
+            <span class="sig-label-dot" style="background: #E6286B;"></span>Visibilidad
+          </div>
+          <div class="sig-label" style="bottom: 24%; left: 0;">
+            <span class="sig-label-dot" style="background: #118BA0;"></span>Comunidad
+          </div>
+          <div class="sig-label" style="bottom: 6%; right: 6%;">
+            <span class="sig-label-dot" style="background: #7F7D3A;"></span>Ternura
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 3 -->
+    <section class="hero-panel hero-3">
+      <div class="organic-blob hero-3-blob">
+        <svg viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="teal-grad" cx="35%" cy="35%">
+              <stop offset="0%" stop-color="#118BA0"/>
+              <stop offset="100%" stop-color="#0C5C6E"/>
+            </radialGradient>
+          </defs>
+          <path d="M 420,70 C 490,130 510,240 470,320 C 430,400 330,440 240,420 C 150,400 70,340 50,240 C 30,140 110,50 210,30 C 300,15 370,30 420,70 Z" fill="url(#teal-grad)"/>
+        </svg>
+      </div>
+
+      <div class="hero-3-start">
+        <div class="hero-2-eyebrow" style="color: var(--aubergine);">Empezá · 03</div>
+        <h3>
+          Sumá tu primera <span class="italic">marca.</span>
+        </h3>
+        <p class="lede">
+          Buscá por nombre, elegí una figura sugerida, o ubicá en el mapa a una activista que aún no tiene artículo.
+        </p>
+
+        <div class="search-box">
+          <span class="icon">✦</span>
+          <input type="search" placeholder="Buscá unx activistx">
+        </div>
+
+        <div class="suggested-names">
+          <button class="pill featured">Lohana Berkins</button>
+          <button class="pill">Marsha P. Johnson</button>
+          <button class="pill">Sylvia Rivera</button>
+          <button class="pill">Pedro Lemebel</button>
+          <button class="pill">Susy Shock</button>
+          <button class="pill">Audre Lorde</button>
+          <button class="pill">+ otra</button>
+        </div>
+      </div>
+
+      <div class="month-event">
+        <span class="month-event-tag">Evento del mes · Nov</span>
+        <h3>
+          Wikiproyecto <span class="italic">LGBT</span>
+        </h3>
+        <p>
+          Cada mes la comunidad hispanohablante convoca a escribir biografías queer nuevas. Es donde nace la lista que alimenta este atlas.
+        </p>
+        <a href="#" class="cta">
+          Sumate al desafío <span class="arrow">↗</span>
+        </a>
+      </div>
+    </section>
   </div>
-  <a class="ec-link" href="https://es.wikipedia.org/wiki/Wikiproyecto:LGBT/Evento_del_mes" target="_blank" rel="noopener">
-    Ir al evento <span class="arrow">→</span>
-  </a>
-</aside>
 
-<div class="stats">
-  <div><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Personas mapeadas</div></div>
-  <div><div class="stat-num warn" id="st-es">0</div><div class="stat-lbl">Sin artículo en español</div></div>
-  <div><div class="stat-num warn" id="st-en">0</div><div class="stat-lbl">Sin artículo en inglés</div></div>
-  <div><div class="stat-num warn" id="st-fr">0</div><div class="stat-lbl">Sin artículo en francés</div></div>
-  <div><div class="stat-num warn" id="st-pt">0</div><div class="stat-lbl">Sin artículo en portugués</div></div>
-  <div><div class="stat-num danger" id="st-none">0</div><div class="stat-lbl">Sin artículo en ningún idioma</div></div>
+  <div class="panel-dots" id="panelDots">
+    <button class="panel-dot on" data-panel="0" aria-label="Panel 1"></button>
+    <button class="panel-dot" data-panel="1" aria-label="Panel 2"></button>
+    <button class="panel-dot" data-panel="2" aria-label="Panel 3"></button>
+  </div>
 </div>
 
-<div class="grid">
+<!-- =============================================================
+     STATS
+     ============================================================= -->
+<div class="section">
+  <div class="section-eyebrow">El pulso del atlas</div>
+  <h2>El archivo <span class="italic">respira.</span></h2>
 
-  <div class="col-controls">
-
-    <div class="panel">
-      <h2>Buscar una figura</h2>
-      <p class="panel-sub">Wikidata · escribí el nombre y elegí</p>
-      <div class="search-wrap">
-        <input type="search" id="search" placeholder="Buscá unx activistx" autocomplete="off">
-        <div class="suggest" id="suggest"></div>
-      </div>
-
-      <div class="suggested-pop">
-        <div class="sp-title">Inspirado en el Wikiproyecto:LGBT</div>
-        <div class="sp-list" id="sp-list"></div>
-        <div class="sp-meta">Listas curadas por la comunidad hispanohablante en <code>Wikiproyecto:LGBT/Solicitados</code>.</div>
-      </div>
+  <div class="stats-strip">
+    <div class="stat">
+      <div class="stat-num c1">47</div>
+      <div class="stat-lbl">Personas<br>mapeadas</div>
     </div>
-
-    <div class="panel" id="panel-detail" style="display:none">
-      <button class="panel-close" id="btn-close-detail" aria-label="Cerrar selección">×</button>
-      <h2>La persona</h2>
-      <p class="panel-sub">Datos desde Wikidata</p>
-      <div class="detail" id="detail"></div>
-
-      <div style="font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-mute);margin:14px 0 6px">Artículo en Wikipedia</div>
-      <div class="langs" id="langs"></div>
-      <div class="lang-actions" id="lang-actions"></div>
+    <div class="stat">
+      <div class="stat-num c2">128</div>
+      <div class="stat-lbl">Marcas<br>afectivas</div>
     </div>
-
-    <div class="panel" id="panel-manual" style="display:none">
-      <button class="panel-close" id="btn-close-manual" aria-label="Cerrar entrada manual">×</button>
-      <h2>Agregar manualmente</h2>
-      <p class="panel-sub">Persona sin entrada en Wikidata</p>
-
-      <div class="manual-form">
-        <label class="m-field">
-          <span class="m-label">Nombre completo</span>
-          <input type="text" id="m-name" placeholder="ej. María García">
-        </label>
-        <div class="m-years">
-          <label class="m-field">
-            <span class="m-label">Nacimiento</span>
-            <input type="number" id="m-birth" placeholder="ej. 1950">
-          </label>
-          <label class="m-field">
-            <span class="m-label">Muerte (opc)</span>
-            <input type="number" id="m-death" placeholder="vacío si vive">
-          </label>
-        </div>
-
-        <div class="m-loc" id="m-loc">
-          <div class="m-loc-text" id="m-loc-text">Tocá el mapa para ubicar a esta persona</div>
-        </div>
-
-        <div class="m-callout">
-          Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong>
-        </div>
-      </div>
+    <div class="stat">
+      <div class="stat-num c3">12</div>
+      <div class="stat-lbl">Sin artículo<br>en español</div>
     </div>
-
-    <div class="panel" id="panel-emotions" style="display:none">
-      <h2>Lo que le agradezco</h2>
-      <p class="panel-sub">Marcá lo que esta figura te dio · escala 0–10</p>
-
-      <div class="add-existing-notice" id="add-existing-notice" style="display:none">
-        <strong>Esta persona ya está mapeada.</strong>
-        <span id="add-existing-count"></span>
-        Tu marca y tu mensaje se suman al atlas colectivo, no reemplazan los anteriores.
-      </div>
-
-      <div class="sliders" id="sliders"></div>
-
-      <div class="pain-section">
-        <div class="pain-label">Lo que duele</div>
-        <div class="pain-sub">Cuando agradecer no alcanza.</div>
-        <div class="sliders" id="sliders-pain"></div>
-      </div>
-
-      <div class="signature">
-        <svg id="signature" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="sig-cap">Marca de gratitud</div>
-      </div>
-
-      <div style="margin:14px 0 6px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--olive)">Por qué la querés agradecer</div>
-      <textarea id="note" placeholder="Un recuerdo, una historia, una línea que querés dejar… opcional."></textarea>
-
-      <div style="margin-top:14px" class="row">
-        <button class="btn secondary" id="btn-cancel">Cancelar</button>
-        <button class="btn" id="btn-submit">Sumar al atlas</button>
-      </div>
+    <div class="stat">
+      <div class="stat-num c4">19</div>
+      <div class="stat-lbl">Sin artículo<br>en inglés</div>
     </div>
-
+    <div class="stat">
+      <div class="stat-num c5">6</div>
+      <div class="stat-lbl">Sin ningún<br>idioma</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num c6">14</div>
+      <div class="stat-lbl">Países<br>representados</div>
+    </div>
   </div>
 
-  <div>
-    <div class="map-toggle">
-      <button class="on" data-view="map">Mapa</button>
-      <button data-view="timeline">Línea de tiempo</button>
+  <!-- MAP -->
+  <div class="map-wrapper">
+    <div class="section-eyebrow">La geografía afectiva</div>
+    <h2>Dónde <span class="italic">late.</span></h2>
+
+    <div class="view-toggle">
+      <button class="on">Mapa</button>
+      <button>Línea de tiempo</button>
     </div>
-    <div class="filters" id="map-filters" style="display:none">
+
+    <div class="filters-card">
       <div class="filter-row">
         <span class="filter-label">Emoción dominante</span>
-        <div class="filter-pills" id="emotion-pills"></div>
+        <div class="filter-pills">
+          <button class="filter-btn active">Todas</button>
+          <button class="filter-btn emo" style="--c: #FFB82E;">Coraje</button>
+          <button class="filter-btn emo" style="--c: #E6286B;">Visibilidad</button>
+          <button class="filter-btn emo" style="--c: #118BA0;">Comunidad</button>
+          <button class="filter-btn emo" style="--c: #7F7D3A;">Ternura</button>
+          <button class="filter-btn emo" style="--c: #3B1C4F;">Rabia</button>
+          <button class="filter-btn emo" style="--c: #140A1F;">Duelo</button>
+        </div>
       </div>
       <div class="filter-row">
         <span class="filter-label">País</span>
-        <div class="filter-pills" id="map-country-pills"></div>
+        <div class="filter-pills">
+          <button class="filter-btn active">Todos</button>
+          <button class="filter-btn">Argentina</button>
+          <button class="filter-btn">Brasil</button>
+          <button class="filter-btn">Chile</button>
+          <button class="filter-btn">México</button>
+          <button class="filter-btn">EE.UU.</button>
+        </div>
       </div>
       <div class="filter-row">
         <span class="filter-label">Cuenta con biografía</span>
-        <div class="filter-pills" id="bio-pills"></div>
-      </div>
-    </div>
-    <div id="map"></div>
-    <div class="timeline-wrap" id="timeline">
-      <h3>Aparición en Wikipedia</h3>
-      <div class="tl-sub">Personas mapeadas según década de nacimiento</div>
-      <div class="tl-hint">Podés pasar sobre los puntos para conocer a lxs activistxs nacidxs en esas fechas.</div>
-      <div class="tl-axis" id="tl-axis" style="height:120px">
-        <div class="tl-line"></div>
-        <div class="tl-popup" id="tl-popup" style="display:none">
-          <button class="tlp-close" aria-label="Cerrar">×</button>
-          <div class="tlp-name" id="tlp-name"></div>
-          <div class="tlp-meta" id="tlp-meta"></div>
-          <a class="tlp-link" id="tlp-link" href="#" target="_blank" rel="noopener">Ver en Wikipedia →</a>
+        <div class="filter-pills">
+          <button class="filter-btn active">Todas</button>
+          <button class="filter-btn">Sí tiene</button>
+          <button class="filter-btn">No tiene</button>
         </div>
       </div>
-      <div class="tl-decades" id="tl-decades"></div>
     </div>
 
-    <div class="below-map" id="below-map">
-      <div class="below-card">
-        <h3>Biografía</h3>
-        <div class="bc-source" id="bio-source">Wikipedia</div>
-        <div class="bio-extract" id="bio-extract"></div>
-        <a class="bc-link" id="bio-link" href="#" target="_blank" rel="noopener">Leer en Wikipedia <span class="arrow">→</span></a>
-      </div>
-      <div class="below-card">
-        <h3>Datos</h3>
-        <div class="bc-source">Wikidata</div>
-        <dl class="wd-list" id="wd-list"></dl>
-        <a class="bc-link" id="wd-link" href="#" target="_blank" rel="noopener">Ver en Wikidata <span class="arrow">→</span></a>
-      </div>
-    </div>
+    <div class="map-canvas" id="mapCanvas"></div>
   </div>
 
-</div>
-
-<section class="gallery">
-  <div class="gallery-header">
+  <!-- GALLERY -->
+  <div class="gallery-hd">
     <div>
-      <h2>Galería colectiva</h2>
-      <div class="g-sub">Las marcas de gratitud se acumulan aquí</div>
+      <div class="section-eyebrow">Las marcas se acumulan</div>
+      <h2>Galería <span class="italic">colectiva.</span></h2>
     </div>
-    <div class="export-actions">
-      <button class="btn-export" id="btn-migrate" style="display:none">↑ Subir mi galería local</button>
-      <button class="btn-export" id="btn-csv" disabled>↓ Descargar CSV</button>
-      <button class="btn-export" id="btn-json" disabled>↓ JSON</button>
+    <div class="gallery-hd-actions">
+      <button class="btn-outline">↓ CSV</button>
+      <button class="btn-outline">↓ JSON</button>
     </div>
-  </div>
-  <div class="gallery-notice">
-    Las tarjetas son permanentes. Si querés editar o quitar la tuya, abrí un issue en el <a href="https://github.com/[tu-usuaria]/queer-atlas/issues/new" target="_blank" rel="noopener">repositorio del proyecto</a>.
   </div>
 
-  <div class="filters" id="gallery-filters" style="display:none">
-    <div class="filter-row">
-      <span class="filter-label">Ordenar por</span>
-      <div class="filter-pills" id="sort-pills">
-        <button class="filter-btn active" data-sort="newest">Más recientes</button>
-        <button class="filter-btn" data-sort="oldest">Más antiguas</button>
-        <button class="filter-btn" data-sort="birthAsc">Por nacimiento ↑</button>
-        <button class="filter-btn" data-sort="birthDesc">Por nacimiento ↓</button>
-        <button class="filter-btn" data-sort="az">A–Z</button>
-        <button class="filter-btn" data-sort="za">Z–A</button>
+  <div class="carousel">
+    <!-- The card signatures below swap perfect circles for organic blob paths. -->
+    <div class="card featured">
+      <div class="card-contribs">3 marcas</div>
+      <div class="card-sig">
+        <svg viewBox="0 0 200 200">
+          <path d="M 170,80 C 185,115 175,160 140,175 C 95,195 40,170 25,130 C 15,95 35,50 75,35 C 125,15 160,45 170,80 Z" fill="#FFB82E" opacity="0.65"/>
+          <path d="M 155,75 C 170,110 150,155 115,165 C 75,175 35,155 30,115 C 25,80 55,45 95,40 C 130,35 150,55 155,75 Z" fill="#E6286B" opacity="0.55"/>
+          <path d="M 150,110 C 160,135 140,165 110,165 C 80,165 55,145 55,115 C 55,90 75,70 105,70 C 130,70 145,85 150,110 Z" fill="#118BA0" opacity="0.55"/>
+          <circle cx="100" cy="100" r="3" fill="#F5EFE3"/>
+        </svg>
+      </div>
+      <div class="card-name">Lohana <span class="italic">Berkins</span></div>
+      <div class="card-meta">1965 – 2016 · Argentina</div>
+      <div class="card-langs">
+        <span class="y">ES</span><span class="y">EN</span><span class="n">FR</span><span class="n">PT</span>
+      </div>
+      <div class="card-msg">"Por enseñarme que el travestismo es una identidad política."</div>
+    </div>
+
+    <div class="card">
+      <div class="card-contribs">2 marcas</div>
+      <div class="card-sig">
+        <svg viewBox="0 0 200 200">
+          <path d="M 175,95 C 180,135 150,175 105,175 C 55,175 25,140 30,95 C 35,55 70,25 115,30 C 155,35 170,65 175,95 Z" fill="#E6286B" opacity="0.55"/>
+          <path d="M 160,100 C 165,135 140,165 100,165 C 65,165 40,140 40,105 C 40,70 70,45 105,45 C 140,45 155,70 160,100 Z" fill="#FFB82E" opacity="0.5"/>
+          <path d="M 145,110 C 150,140 125,160 95,160 C 70,160 55,135 55,110 C 55,85 80,65 110,70 C 135,75 145,95 145,110 Z" fill="#7F7D3A" opacity="0.55"/>
+          <circle cx="100" cy="100" r="3" fill="#140A1F"/>
+        </svg>
+      </div>
+      <div class="card-name">Marsha P. <span class="italic">Johnson</span></div>
+      <div class="card-meta">1945 – 1992 · EE.UU.</div>
+      <div class="card-langs">
+        <span class="y">ES</span><span class="y">EN</span><span class="y">FR</span><span class="y">PT</span>
+      </div>
+      <div class="card-msg">"Por Stonewall y por todo lo que vino después."</div>
+    </div>
+
+    <div class="card">
+      <div class="card-sig">
+        <svg viewBox="0 0 200 200">
+          <path d="M 170,90 C 175,130 155,170 115,175 C 70,180 30,150 30,105 C 30,65 65,35 110,35 C 150,35 165,60 170,90 Z" fill="#118BA0" opacity="0.55"/>
+          <path d="M 155,100 C 160,135 135,160 100,160 C 65,160 45,135 45,105 C 45,75 75,50 110,55 C 140,60 150,80 155,100 Z" fill="#C6D4C8" opacity="0.65"/>
+          <path d="M 140,115 C 145,140 120,155 95,155 C 70,155 60,135 60,115 C 60,95 85,80 110,85 C 130,90 140,100 140,115 Z" fill="#7F7D3A" opacity="0.4"/>
+          <circle cx="100" cy="100" r="3" fill="#140A1F"/>
+        </svg>
+      </div>
+      <div class="card-name">Pedro <span class="italic">Lemebel</span></div>
+      <div class="card-meta">1952 – 2015 · Chile</div>
+      <div class="card-langs">
+        <span class="y">ES</span><span class="y">EN</span><span class="n">FR</span><span class="y">PT</span>
       </div>
     </div>
-    <div class="filter-row">
-      <span class="filter-label">País</span>
-      <div class="filter-pills" id="country-pills"></div>
+
+    <div class="card">
+      <div class="card-contribs">4 marcas</div>
+      <div class="card-sig">
+        <svg viewBox="0 0 200 200">
+          <path d="M 180,90 C 185,135 160,180 110,180 C 55,180 20,150 20,100 C 20,55 60,20 110,25 C 155,30 175,60 180,90 Z" fill="#7F7D3A" opacity="0.55"/>
+          <path d="M 160,100 C 170,135 145,165 105,165 C 70,165 40,140 40,105 C 40,70 75,45 110,50 C 145,55 155,80 160,100 Z" fill="#118BA0" opacity="0.5"/>
+          <path d="M 145,110 C 150,140 125,160 95,160 C 70,160 55,135 55,110 C 55,85 80,65 110,70 C 135,75 145,95 145,110 Z" fill="#E6286B" opacity="0.45"/>
+          <circle cx="100" cy="100" r="3" fill="#140A1F"/>
+        </svg>
+      </div>
+      <div class="card-name">Audre <span class="italic">Lorde</span></div>
+      <div class="card-meta">1934 – 1992 · EE.UU.</div>
+      <div class="card-langs">
+        <span class="y">ES</span><span class="y">EN</span><span class="y">FR</span><span class="y">PT</span>
+      </div>
+      <div class="card-msg">"Tu silencio no te protegerá."</div>
     </div>
   </div>
-
-  <div id="gallery-content"></div>
-</section>
+</div>
 
 <footer>
-  <div>Queer Atlas · prototipo en construcción. Datos en LocalStorage (no se envían a ningún servidor).</div>
-  <div>Construido en diálogo con el Wikiproyecto:LGBT · Wikipedia en español</div>
+  <div class="footer-inner">
+    <div>Queer Atlas · v0.1 · Datos colectivos</div>
+    <div>Construido con <a href="#">Wikiproyecto:LGBT</a></div>
+    <div><a href="#">Github</a> · <a href="#">Metodología</a></div>
+  </div>
 </footer>
 
-</div>
-
-<div class="toast" id="toast"></div>
-
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
-const EMOTIONS = [
-  { key: 'coraje',      label: 'Coraje',      color: '#FFB30F' },
-  { key: 'visibilidad', label: 'Visibilidad', color: '#0C7489' },
-  { key: 'comunidad',   label: 'Comunidad',   color: '#646536' },
-  { key: 'lenguaje',    label: 'Lenguaje',    color: '#050609' },
-  { key: 'arte',        label: 'Arte',        color: '#C24B1B' },
-  { key: 'ternura',     label: 'Ternura',     color: '#B0C7BD' },
-];
-const PAINS = [
-  { key: 'rabia',  label: 'Rabia',  color: '#C24B1B' },
-  { key: 'duelo',  label: 'Duelo',  color: '#050609' },
-];
-const ALL_AXES = [...EMOTIONS, ...PAINS];
-const LANGS = [
-  { code: 'es', label: 'ES', site: 'eswiki' },
-  { code: 'en', label: 'EN', site: 'enwiki' },
-  { code: 'fr', label: 'FR', site: 'frwiki' },
-  { code: 'pt', label: 'PT', site: 'ptwiki' },
-];
-
-// Lista semilla inspirada en el Wikiproyecto:LGBT de Wikipedia en español.
-// Se resuelven dinámicamente contra Wikidata al clickear — sin Q-IDs hardcodeados
-// que puedan quedar obsoletos o ser incorrectos.
-const SEED = [
-  'Lohana Berkins',
-  'Marsha P. Johnson',
-  'Sylvia Rivera',
-  'Diana Sacayán',
-  'Pedro Lemebel',
-  'Susy Shock',
-  'Audre Lorde',
-  'Reinaldo Arenas',
-  'Néstor Perlongher',
-  'Lia García',
-];
-
-const STORAGE_KEY = 'queer_atlas_entries_v2';
-const MIGRATION_FLAG_KEY = 'queer_atlas_migrated_supabase_v1';
-
-// ============================================================
-// SUPABASE — collective backend
-// ============================================================
-// Configuration. To disable Supabase and run in localStorage-only mode,
-// blank out either of these constants.
-const SUPABASE_URL = 'https://hfxhtguuohnbxsktukes.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmeGh0Z3V1b2huYnhza3R1a2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODUxMzMsImV4cCI6MjA5NDI2MTEzM30.aT1vxOXD9U6DYSN9qiRM6s6m5oUT73FYOH8iPX2F5pA';
-
-let supabaseClient = null;
-if (SUPABASE_URL && SUPABASE_ANON_KEY && typeof window.supabase !== 'undefined') {
-  try {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      realtime: { params: { eventsPerSecond: 5 } },
-    });
-  } catch (e) {
-    console.warn('Could not init Supabase client:', e);
-  }
-}
-
-// ============================================================
-// STATE
-// ============================================================
-let current = null;   // person being edited
-let entries = loadEntriesFromCache(); // sync: starts from localStorage cache
-let map, markers = {};
-
-// ============================================================
-// PERSISTENCE
-// ============================================================
-// localStorage acts as a fast cache. The remote DB (Supabase) is the
-// source of truth when configured. On init we hydrate from cache (instant)
-// and then refresh from remote (slightly slower, but authoritative).
-
-function loadEntriesFromCache() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return raw.map(migrateEntry);
-  } catch (e) { return []; }
-}
-
-function cacheEntries() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
-
-// Pre-Supabase function — kept as alias for back-compat with anything that
-// expected synchronous save. After Supabase init, contributions are pushed
-// via saveContribution() instead.
-function saveEntries() {
-  cacheEntries();
-}
-
-// Map a database `people` row + grouped contributions into our entry shape.
-function rowToEntry(p, contribs) {
-  return migrateEntry({
-    qid: p.qid,
-    name: p.name,
-    description: p.description,
-    birthYear: p.birth_year,
-    deathYear: p.death_year,
-    pobLabel: p.pob_label,
-    countryLabel: p.country_label,
-    coords: p.coords,
-    image: p.image,
-    sitelinks: p.sitelinks || {},
-    manual: !!p.manual,
-    contributions: (contribs || []).map(c => ({
-      emotions: c.emotions || {},
-      note: c.note || '',
-      submitted_at: c.submitted_at,
-    })),
-    submitted_at: p.created_at,
-  });
-}
-
-async function loadEntriesFromRemote() {
-  if (!supabaseClient) return null;
-  const [pRes, cRes] = await Promise.all([
-    supabaseClient.from('people').select('*'),
-    supabaseClient.from('contributions').select('*').order('submitted_at', { ascending: true }),
-  ]);
-  if (pRes.error) throw pRes.error;
-  if (cRes.error) throw cRes.error;
-
-  // Group contributions by person_qid
-  const byPerson = {};
-  (cRes.data || []).forEach(c => {
-    (byPerson[c.person_qid] = byPerson[c.person_qid] || []).push(c);
-  });
-  return (pRes.data || []).map(p => rowToEntry(p, byPerson[p.qid] || []));
-}
-
-// Write a single contribution + upsert the person row.
-async function saveContribution(person, contribution) {
-  if (!supabaseClient) {
-    cacheEntries();
-    return;
-  }
-  const personRow = {
-    qid: person.qid,
-    name: person.name,
-    description: person.description ?? null,
-    birth_year: person.birthYear ?? null,
-    death_year: person.deathYear ?? null,
-    pob_label: person.pobLabel ?? null,
-    country_label: person.countryLabel ?? null,
-    coords: person.coords ?? null,
-    image: person.image ?? null,
-    sitelinks: person.sitelinks || {},
-    manual: !!person.manual,
-  };
-  const { error: pErr } = await supabaseClient.from('people').upsert(personRow, { onConflict: 'qid' });
-  if (pErr) throw pErr;
-  const { error: cErr } = await supabaseClient.from('contributions').insert({
-    person_qid: person.qid,
-    emotions: contribution.emotions || {},
-    note: contribution.note || '',
-  });
-  if (cErr) throw cErr;
-}
-
-// Update just the person row (used by backfillCountries).
-async function updatePersonRow(person) {
-  if (!supabaseClient) {
-    cacheEntries();
-    return;
-  }
-  const { error } = await supabaseClient.from('people').upsert({
-    qid: person.qid,
-    name: person.name,
-    description: person.description ?? null,
-    birth_year: person.birthYear ?? null,
-    death_year: person.deathYear ?? null,
-    pob_label: person.pobLabel ?? null,
-    country_label: person.countryLabel ?? null,
-    coords: person.coords ?? null,
-    image: person.image ?? null,
-    sitelinks: person.sitelinks || {},
-    manual: !!person.manual,
-  }, { onConflict: 'qid' });
-  if (error) throw error;
-}
-
-// Subscribe to real-time changes so other browsers' contributions appear live.
-let realtimeChannel = null;
-let realtimeReloadTimer = null;
-function subscribeToRealtime() {
-  if (!supabaseClient || realtimeChannel) return;
-  const debouncedReload = () => {
-    clearTimeout(realtimeReloadTimer);
-    realtimeReloadTimer = setTimeout(refreshFromRemote, 400);
-  };
-  realtimeChannel = supabaseClient
-    .channel('atlas-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'people' }, debouncedReload)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'contributions' }, debouncedReload)
-    .subscribe();
-}
-
-async function refreshFromRemote() {
-  if (!supabaseClient) return;
-  try {
-    const remote = await loadEntriesFromRemote();
-    if (remote) {
-      entries = remote;
-      cacheEntries();
-      refreshAll();
-    }
-  } catch (e) {
-    console.warn('Refresh from remote failed:', e);
-  }
-}
-
-// Old entries had `emotions` + `note` directly on the entry.
-// New schema: entry.contributions = [{ emotions, note, submitted_at }, ...]
-// entry.emotions and entry.notes are derived (cached) for fast rendering.
-function migrateEntry(entry) {
-  if (!entry.contributions) {
-    entry.contributions = [{
-      emotions: entry.emotions || {},
-      note: entry.note || '',
-      submitted_at: entry.submitted_at || new Date().toISOString(),
-    }];
-  }
-  entry.emotions = aggregateEmotions(entry.contributions);
-  entry.notes = entry.contributions.map(c => (c.note || '').trim()).filter(Boolean);
-  return entry;
-}
-
-function aggregateEmotions(contributions) {
-  const out = {};
-  if (!contributions || !contributions.length) return out;
-  // ALL_AXES may not be defined yet on first load; guard with a fallback
-  const axes = (typeof ALL_AXES !== 'undefined' ? ALL_AXES : []);
-  axes.forEach(a => { out[a.key] = 0; });
-  contributions.forEach(c => {
-    axes.forEach(a => { out[a.key] += (c.emotions?.[a.key] || 0); });
-  });
-  axes.forEach(a => { out[a.key] = out[a.key] / contributions.length; });
-  return out;
-}
-
-// ============================================================
-// WIKIDATA
-// ============================================================
-async function wdSearch(query) {
-  const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(query)}&language=es&uselang=es&type=item&limit=8&format=json&origin=*`;
-  const r = await fetch(url);
-  const d = await r.json();
-  return d.search || [];
-}
-
-async function wdGetEntity(qid) {
-  const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&format=json&origin=*`;
-  const r = await fetch(url);
-  const d = await r.json();
-  return d.entities[qid];
-}
-
-// Get coordinates from a Wikidata place entity (P625)
-async function wdGetPlaceCoords(qid) {
-  if (!qid) return null;
-  try {
-    const ent = await wdGetEntity(qid);
-    const coord = ent?.claims?.P625?.[0]?.mainsnak?.datavalue?.value;
-    if (coord) return { lat: coord.latitude, lng: coord.longitude };
-  } catch (e) {}
-  return null;
-}
-
-// Get a Commons image URL from a filename
-function commonsImageUrl(filename, width = 200) {
-  if (!filename) return null;
-  const clean = filename.replace(/ /g, '_');
-  return `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(clean)}?width=${width}`;
-}
-
-// Parse a Wikidata entity for our purposes
-async function parsePerson(qid) {
-  const ent = await wdGetEntity(qid);
-  if (!ent) return null;
-
-  const labels = ent.labels || {};
-  const descs = ent.descriptions || {};
-  const claims = ent.claims || {};
-  const sitelinks = ent.sitelinks || {};
-
-  const name = labels.es?.value || labels.en?.value || qid;
-  const description = descs.es?.value || descs.en?.value || '';
-
-  // Dates
-  const birth = claims.P569?.[0]?.mainsnak?.datavalue?.value?.time;
-  const death = claims.P570?.[0]?.mainsnak?.datavalue?.value?.time;
-  const birthYear = birth ? parseInt(birth.slice(1, 5)) : null;
-  const deathYear = death ? parseInt(death.slice(1, 5)) : null;
-
-  // Place of birth -> coords
-  const pobQid = claims.P19?.[0]?.mainsnak?.datavalue?.value?.id;
-  const pobLabel = pobQid ? (await wdGetLabel(pobQid)) : null;
-  let coords = await wdGetPlaceCoords(pobQid);
-
-  // Fallback: place of death
-  if (!coords) {
-    const podQid = claims.P20?.[0]?.mainsnak?.datavalue?.value?.id;
-    if (podQid) coords = await wdGetPlaceCoords(podQid);
-  }
-  // Country of citizenship — always extract (used for filtering)
-  const cocQid = claims.P27?.[0]?.mainsnak?.datavalue?.value?.id;
-  const countryLabel = cocQid ? (await wdGetLabel(cocQid)) : null;
-  // Fallback for coords if no place of birth/death
-  if (!coords && cocQid) coords = await wdGetPlaceCoords(cocQid);
-
-  const image = claims.P18?.[0]?.mainsnak?.datavalue?.value;
-
-  // Sitelinks (article existence per language)
-  const sitelinkMap = {};
-  LANGS.forEach(l => {
-    sitelinkMap[l.code] = sitelinks[l.site]?.title || null;
-  });
-
-  return {
-    qid,
-    name,
-    description,
-    birthYear, deathYear,
-    pobLabel,
-    countryLabel,
-    coords,
-    image,
-    sitelinks: sitelinkMap,
-  };
-}
-
-const labelCache = {};
-async function wdGetLabel(qid) {
-  if (labelCache[qid]) return labelCache[qid];
-  try {
-    const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&props=labels&languages=es|en&format=json&origin=*`;
-    const r = await fetch(url);
-    const d = await r.json();
-    const ent = d.entities[qid];
-    const label = ent.labels?.es?.value || ent.labels?.en?.value || qid;
-    labelCache[qid] = label;
-    return label;
-  } catch (e) { return qid; }
-}
-
-// Wikipedia REST API summary — extracts intro paragraph + canonical URL
-async function fetchBio(title, lang) {
-  if (!title) return null;
-  try {
-    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    return await r.json();
-  } catch (e) { return null; }
-}
-
-function populateWdCard(person) {
-  const wdList = document.getElementById('wd-list');
-  const wdLink = document.getElementById('wd-link');
-  const rows = [];
-  if (person.birthYear || person.deathYear) {
-    rows.push(['Vida', `${person.birthYear ?? '?'} – ${person.deathYear ?? ''}`.trim()]);
-  }
-  if (person.pobLabel) rows.push(['Lugar', person.pobLabel]);
-  if (person.description) rows.push(['Descripción', person.description]);
-  rows.push(['Identificador', person.qid]);
-
-  wdList.innerHTML = rows.map(([dt, dd]) =>
-    `<dt>${escapeHtml(dt)}</dt><dd>${escapeHtml(dd)}</dd>`
-  ).join('');
-  wdLink.href = `https://www.wikidata.org/wiki/${person.qid}`;
-}
-
-async function populateBioCard(person) {
-  const bioExtract = document.getElementById('bio-extract');
-  const bioLink = document.getElementById('bio-link');
-  const bioSource = document.getElementById('bio-source');
-
-  bioExtract.innerHTML = '<p style="font-style:italic;color:var(--ink-mute)"><span class="spinner"></span> Cargando biografía…</p>';
-  bioLink.style.display = 'none';
-
-  const tryLangs = LANGS.filter(l => person.sitelinks[l.code]);
-  for (const l of tryLangs) {
-    const bio = await fetchBio(person.sitelinks[l.code], l.code);
-    if (bio && bio.extract) {
-      bioExtract.innerHTML = `<p>${escapeHtml(bio.extract)}</p>`;
-      bioLink.href = bio.content_urls?.desktop?.page
-        || `https://${l.code}.wikipedia.org/wiki/${encodeURIComponent(person.sitelinks[l.code])}`;
-      bioLink.style.display = 'inline-flex';
-      bioSource.textContent = `Wikipedia · ${l.code.toUpperCase()}`;
-      return;
-    }
-  }
-
-  bioExtract.innerHTML = '<p style="font-style:italic;color:var(--ink-mute)">Sin biografía disponible en Wikipedia para esta persona.</p>';
-  bioLink.style.display = 'none';
-  bioSource.textContent = 'Wikipedia';
-}
-
-// ============================================================
-// SEARCH UI
-// ============================================================
-const searchInput = document.getElementById('search');
-const suggest = document.getElementById('suggest');
-let searchTimer = null;
-
-searchInput.addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  const q = searchInput.value.trim();
-  if (q.length < 2) { suggest.classList.remove('open'); suggest.innerHTML = ''; return; }
-  searchTimer = setTimeout(() => doSearch(q), 280);
-});
-
-async function doSearch(q) {
-  suggest.innerHTML = '<div class="suggest-item" style="cursor:default"><span class="spinner"></span> Buscando…</div>';
-  suggest.classList.add('open');
-  try {
-    const results = await wdSearch(q);
-    let html = '';
-    if (results.length) {
-      html = results.map(r => `
-        <div class="suggest-item" data-q="${r.id}">
-          <div class="si-name">${escapeHtml(r.label)}</div>
-          <div class="si-desc">${escapeHtml(r.description || '—')} · <code>${r.id}</code></div>
-        </div>
-      `).join('');
-    } else {
-      html = '<div class="suggest-item" style="cursor:default;color:var(--ink-mute);font-style:italic">Sin resultados en Wikidata.</div>';
-    }
-    // Always offer manual entry at the bottom
-    html += `
-      <div class="suggest-item suggest-manual" data-action="manual" data-name="${escapeHtml(q)}">
-        <div class="si-name">+ Agregar manualmente: "${escapeHtml(q)}"</div>
-        <div class="si-desc">Para personas que aún no están en Wikidata</div>
-      </div>
-    `;
-    suggest.innerHTML = html;
-
-    suggest.querySelectorAll('.suggest-item').forEach(el => {
-      if (el.dataset.action === 'manual') {
-        el.addEventListener('click', () => startManualEntry(el.dataset.name));
-      } else if (el.dataset.q) {
-        el.addEventListener('click', () => selectPerson(el.dataset.q));
-      }
-    });
-  } catch (e) {
-    suggest.innerHTML = '<div class="suggest-item" style="cursor:default;color:var(--amber)">Error en la búsqueda.</div>';
-  }
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.search-wrap')) suggest.classList.remove('open');
-});
-
-// ============================================================
-// SEED / Wikiproyecto:LGBT pre-loaded
-// ============================================================
-const spList = document.getElementById('sp-list');
-SEED.forEach(name => {
-  const el = document.createElement('span');
-  el.className = 'sp-item';
-  el.textContent = name;
-  el.addEventListener('click', async () => {
-    el.style.opacity = '0.5';
-    el.style.pointerEvents = 'none';
-    try {
-      const results = await wdSearch(name);
-      const best = results.find(r => r.description) || results[0];
-      if (best) {
-        await selectPerson(best.id);
-      } else {
-        showToast(`Sin resultados para "${name}".`);
-      }
-    } catch (err) {
-      showToast(`Error al buscar "${name}".`);
-    } finally {
-      el.style.opacity = '';
-      el.style.pointerEvents = '';
-    }
-  });
-  spList.appendChild(el);
-});
-
-// ============================================================
-// SELECT PERSON
-// ============================================================
-async function selectPerson(qid) {
-  suggest.classList.remove('open');
-  searchInput.value = '';
-
-  document.getElementById('panel-detail').style.display = 'block';
-  document.getElementById('panel-emotions').style.display = 'block';
-  document.getElementById('detail').innerHTML = '<div style="padding:8px 0"><span class="spinner"></span> Cargando…</div>';
-  document.getElementById('langs').innerHTML = '<span class="lang check">…</span>';
-  document.getElementById('lang-actions').innerHTML = '';
-
-  try {
-    const person = await parsePerson(qid);
-    if (!person) throw new Error('No data');
-
-    const existing = entries.find(e => e.qid === qid);
-    current = {
-      ...person,
-      emotions: Object.fromEntries(ALL_AXES.map(e => [e.key, 0])),
-      note: '',
-      isAddingTo: !!existing,
-    };
-
-    // Show or hide the "already mapped" notice in the emotions panel
-    const notice = document.getElementById('add-existing-notice');
-    if (existing) {
-      const n = (existing.contributions || []).length;
-      notice.style.display = 'block';
-      document.getElementById('add-existing-count').textContent =
-        n > 0 ? `Lleva ${n} ${n === 1 ? 'marca' : 'marcas'} anteriores. ` : '';
-      document.getElementById('btn-submit').textContent = 'Agregar mi marca';
-    } else {
-      notice.style.display = 'none';
-      document.getElementById('btn-submit').textContent = 'Sumar al atlas';
-    }
-
-    renderDetail();
-    renderLangs();
-    renderSliders();
-    renderSignature();
-    document.getElementById('below-map').classList.add('on');
-    populateWdCard(person);
-    populateBioCard(person);
-  } catch (e) {
-    const msg = escapeHtml(e.message || '');
-    const isNetwork = /Failed to fetch|NetworkError|Load failed/i.test(msg);
-    const hint = isNetwork
-      ? '<div style="margin-top:10px;padding:10px 12px;background:var(--bg-soft);border-radius:3px;font-size:12px;color:var(--ink-soft);line-height:1.55">Si abriste el archivo directo (file://), el navegador suele bloquear las APIs externas. Probá servirlo con un HTTP local:<br><code style="display:inline-block;margin-top:6px;padding:4px 8px;background:var(--surface);border:1px solid var(--rule);font-family:ui-monospace,monospace;font-size:11px;border-radius:3px">python3 -m http.server</code> y abrí <code style="font-family:ui-monospace,monospace;font-size:11px">http://localhost:8000</code></div>'
-      : '';
-    document.getElementById('detail').innerHTML = `<div style="color:var(--amber);font-weight:600">No pude cargar esta persona.${msg ? ' ' + msg + '.' : ''}</div>${hint}`;
-  }
-}
-
-function renderDetail() {
-  const p = current;
-  const portrait = p.image
-    ? `<img src="${commonsImageUrl(p.image, 200)}" alt="${escapeHtml(p.name)}">`
-    : initials(p.name);
-  const lifespan = (p.birthYear || p.deathYear)
-    ? `${p.birthYear ?? '?'} – ${p.deathYear ?? ''}`.trim()
-    : '';
-  const place = p.pobLabel ? ` · ${escapeHtml(p.pobLabel)}` : '';
-  document.getElementById('detail').innerHTML = `
-    <div class="portrait">${portrait}</div>
-    <div>
-      <div class="d-name">${escapeHtml(p.name)}</div>
-      <div class="d-meta">${lifespan}${place}</div>
-      ${p.description ? `<div class="d-desc">${escapeHtml(p.description)}</div>` : ''}
-      <div class="d-qid">${p.qid}</div>
-    </div>
-  `;
-}
-
-function renderLangs() {
-  const p = current;
-  const langsEl = document.getElementById('langs');
-  const actionsEl = document.getElementById('lang-actions');
-
-  langsEl.innerHTML = LANGS.map(l => {
-    const exists = !!p.sitelinks[l.code];
-    return `<span class="lang ${exists ? 'yes' : 'no'}">${l.label} ${exists ? '✓' : '✗'}</span>`;
-  }).join('');
-
-  const missing = LANGS.filter(l => !p.sitelinks[l.code]);
-  if (missing.length === 0) {
-    actionsEl.innerHTML = '<div style="font-size:12px;color:var(--ink-mute);font-style:italic">Tiene artículo en todos los idiomas verificados.</div>';
-  } else {
-    actionsEl.innerHTML = missing.map(l => {
-      const url = `https://${l.code}.wikipedia.org/w/index.php?title=${encodeURIComponent(p.name)}&action=edit&redlink=1`;
-      return `<a class="btn-link" href="${url}" target="_blank" rel="noopener">+ Crear en ${l.label}</a>`;
-    }).join('');
-  }
-}
-
-function renderSliders() {
-  const sliderHTML = (axis) => `
-    <div class="slider">
-      <label class="s-label" for="sl-${axis.key}">${axis.label}</label>
-      <input type="range" min="0" max="10" step="1" value="${current.emotions[axis.key]}" id="sl-${axis.key}" class="s-input" style="--c:${axis.color}">
-      <span class="s-num" id="sn-${axis.key}">${current.emotions[axis.key]}</span>
-    </div>
-  `;
-  document.getElementById('sliders').innerHTML = EMOTIONS.map(sliderHTML).join('');
-  document.getElementById('sliders-pain').innerHTML = PAINS.map(sliderHTML).join('');
-  ALL_AXES.forEach(e => {
-    const input = document.getElementById('sl-' + e.key);
-    const num = document.getElementById('sn-' + e.key);
-    input.addEventListener('input', () => {
-      current.emotions[e.key] = parseInt(input.value);
-      num.textContent = input.value;
-      renderSignature();
-    });
-  });
-}
-
-// ============================================================
-// SIGNATURE (generative SVG based on emotion values)
-// ============================================================
-function renderSignature(targetSvg = null, emotionsOverride = null) {
-  const svg = targetSvg || document.getElementById('signature');
-  const ems = emotionsOverride || current.emotions;
-  svg.innerHTML = '';
-  const ns = 'http://www.w3.org/2000/svg';
-  const cx = 100, cy = 100;
-
-  // Each axis is one translucent circle whose radius scales with value
-  ALL_AXES.forEach((e, i) => {
-    const v = ems[e.key] || 0;
-    if (v === 0) return;
-    const angle = (i / ALL_AXES.length) * Math.PI * 2 - Math.PI / 2;
-    const r = 18 + v * 5;
-    const offset = 12 + (10 - v) * 1.4;
-    const x = cx + Math.cos(angle) * offset;
-    const y = cy + Math.sin(angle) * offset;
-    const c = document.createElementNS(ns, 'circle');
-    c.setAttribute('cx', x);
-    c.setAttribute('cy', y);
-    c.setAttribute('r', r);
-    c.setAttribute('fill', e.color);
-    c.setAttribute('opacity', 0.42);
-    svg.appendChild(c);
-  });
-
-  // Anchor dot at center
-  const dot = document.createElementNS(ns, 'circle');
-  dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
-  dot.setAttribute('r', 2); dot.setAttribute('fill', '#050609');
-  svg.appendChild(dot);
-}
-
-function dominantEmotionColor(ems) {
-  let max = 0, color = '#888';
-  ALL_AXES.forEach(e => {
-    if ((ems[e.key] || 0) > max) { max = ems[e.key]; color = e.color; }
-  });
-  return color;
-}
-
-function dominantEmotionKey(ems) {
-  if (!ems) return null;
-  let max = 0, key = null;
-  ALL_AXES.forEach(e => {
-    if ((ems[e.key] || 0) > max) { max = ems[e.key]; key = e.key; }
-  });
-  return key; // null if all are 0
-}
-
-// ============================================================
-// SUBMIT
-// ============================================================
-function clearSelection() {
-  current = null;
-  manualMode = false;
-  document.getElementById('panel-detail').style.display = 'none';
-  document.getElementById('panel-emotions').style.display = 'none';
-  document.getElementById('panel-manual').style.display = 'none';
-  document.getElementById('below-map').classList.remove('on');
-  document.getElementById('note').value = '';
-  const notice = document.getElementById('add-existing-notice');
-  if (notice) notice.style.display = 'none';
-  const submitBtn = document.getElementById('btn-submit');
-  if (submitBtn) submitBtn.textContent = 'Sumar al atlas';
-  clearManualPreview();
-  const tlPop = document.getElementById('tl-popup');
-  if (tlPop) tlPop.style.display = 'none';
-}
-
-document.getElementById('btn-cancel').addEventListener('click', clearSelection);
-document.getElementById('btn-close-detail').addEventListener('click', clearSelection);
-
-document.getElementById('btn-submit').addEventListener('click', async () => {
-  if (!current) return;
-  if (!current.coords) {
-    showToast('No tenemos coordenadas para esta persona — ubicala manualmente.');
-    return;
-  }
-
-  // For manual entries, re-read the form fields in case the user edited them
-  // after picking a location on the map
-  if (current.manual) {
-    const name = document.getElementById('m-name').value.trim();
-    if (!name) {
-      showToast('Necesitamos un nombre antes de sumar al atlas.');
-      return;
-    }
-    current.name = name;
-    current.birthYear = parseInt(document.getElementById('m-birth').value) || null;
-    current.deathYear = parseInt(document.getElementById('m-death').value) || null;
-  }
-
-  current.note = document.getElementById('note').value.trim();
-  const newContribution = {
-    emotions: { ...current.emotions },
-    note: current.note,
-    submitted_at: new Date().toISOString(),
-  };
-
-  const submitBtn = document.getElementById('btn-submit');
-  const originalText = submitBtn.textContent;
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Guardando…';
-
-  // OPTIMISTIC LOCAL UPDATE — show the result immediately
-  const existingIndex = entries.findIndex(e => e.qid === current.qid);
-  const personSnapshot = { ...current };
-  if (existingIndex >= 0) {
-    const existing = entries[existingIndex];
-    existing.contributions = existing.contributions || [];
-    existing.contributions.push(newContribution);
-    existing.emotions = aggregateEmotions(existing.contributions);
-    existing.notes = existing.contributions.map(c => (c.note || '').trim()).filter(Boolean);
-    existing.last_contribution_at = newContribution.submitted_at;
-  } else {
-    const newEntry = {
-      ...current,
-      contributions: [newContribution],
-      emotions: { ...newContribution.emotions },
-      notes: newContribution.note ? [newContribution.note] : [],
-      submitted_at: newContribution.submitted_at,
-    };
-    delete newEntry.isAddingTo;
-    delete newEntry.note;
-    entries.push(newEntry);
-  }
-  cacheEntries();
-  clearManualPreview();
-  manualMode = false;
-  refreshAll();
-
-  // PUSH TO REMOTE
-  let saveOk = true;
-  try {
-    await saveContribution(personSnapshot, newContribution);
-  } catch (e) {
-    console.warn('Supabase save failed:', e);
-    saveOk = false;
-    // Reload from remote to revert the optimistic local change
-    showToast('No se pudo guardar en la base colectiva. Reintentá en un momento.');
-    await refreshFromRemote();
-  }
-
-  submitBtn.disabled = false;
-  submitBtn.textContent = originalText;
-
-  if (saveOk) {
-    const isAdd = existingIndex >= 0;
-    showToast(isAdd ? `Tu marca se sumó a ${personSnapshot.name}.` : `${personSnapshot.name} sumada al atlas.`);
-  }
-  current = null;
-  document.getElementById('panel-detail').style.display = 'none';
-  document.getElementById('panel-manual').style.display = 'none';
-  document.getElementById('panel-emotions').style.display = 'none';
-  document.getElementById('below-map').classList.remove('on');
-  document.getElementById('note').value = '';
-  const notice = document.getElementById('add-existing-notice');
-  if (notice) notice.style.display = 'none';
-});
-
-// ============================================================
-// MANUAL ENTRY (personas sin Wikidata)
-// ============================================================
-let manualMode = false;
-let manualPreviewMarker = null;
-
-function clearManualPreview() {
-  if (manualPreviewMarker && map) {
-    map.removeLayer(manualPreviewMarker);
-    manualPreviewMarker = null;
-  }
-}
-
-function startManualEntry(prefilledName = '') {
-  // Close any open Wikidata selection first
-  current = null;
-  document.getElementById('panel-detail').style.display = 'none';
-  document.getElementById('panel-emotions').style.display = 'none';
-  document.getElementById('below-map').classList.remove('on');
-  clearManualPreview();
-
-  manualMode = true;
-  document.getElementById('panel-manual').style.display = 'block';
-  document.getElementById('m-name').value = prefilledName;
-  document.getElementById('m-birth').value = '';
-  document.getElementById('m-death').value = '';
-  document.getElementById('m-loc-text').textContent = 'Tocá el mapa para ubicar a esta persona';
-  document.getElementById('m-loc').classList.remove('captured');
-
-  suggest.classList.remove('open');
-  searchInput.value = '';
-
-  // Make sure the map (not timeline) is visible
-  const mapBtn = document.getElementById('map-mode-map');
-  const tlBtn = document.getElementById('map-mode-timeline');
-  if (mapBtn && tlBtn && !mapBtn.classList.contains('on')) {
-    mapBtn.click();
-  }
-
-  showToast('Completá los datos y tocá el mapa para ubicar.');
-}
-
-// Reverse geocode lat/lng to country name via Nominatim (OpenStreetMap).
-// Same data source as the map tiles. Free, no API key.
-// Cached in-memory per coords key to avoid duplicate calls.
-const reverseGeocodeCache = {};
-async function reverseGeocode(lat, lng) {
-  const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
-  if (key in reverseGeocodeCache) return reverseGeocodeCache[key];
-  try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=3&accept-language=es`;
-    const r = await fetch(url);
-    if (!r.ok) { reverseGeocodeCache[key] = null; return null; }
-    const d = await r.json();
-    const country = d.address?.country || null;
-    reverseGeocodeCache[key] = country;
-    return country;
-  } catch (e) {
-    return null;
-  }
-}
-
-// Render the "captured" state of the location prompt — shared so it can be
-// re-rendered when the reverse-geocoded country comes back.
-function renderManualLocCaptured(detectedCountry) {
-  const locEl = document.getElementById('m-loc');
-  const locTxt = document.getElementById('m-loc-text');
-  const country = detectedCountry
-    ? ` · <strong>${escapeHtml(detectedCountry)}</strong>`
-    : '';
-  locTxt.innerHTML = `✓ Ubicada${country} · <button class="m-loc-redo" type="button">cambiar</button>`;
-  locEl.classList.add('captured');
-  locEl.querySelector('.m-loc-redo').addEventListener('click', () => {
-    locTxt.textContent = 'Tocá el mapa otra vez para mover el pin';
-    locEl.classList.remove('captured');
-  });
-}
-
-function handleManualLocation(latlng) {
-  const name = document.getElementById('m-name').value.trim();
-  if (!name) {
-    showToast('Escribí el nombre antes de ubicar.');
-    return;
-  }
-
-  const birthYear = parseInt(document.getElementById('m-birth').value) || null;
-  const deathYear = parseInt(document.getElementById('m-death').value) || null;
-
-  // Reuse the same qid across re-clicks so dedupe in submit works on cancel/redo
-  const qid = current?.manual ? current.qid : 'manual_' + Date.now();
-
-  const person = {
-    qid,
-    name,
-    birthYear,
-    deathYear,
-    pobLabel: null,
-    countryLabel: null, // will be filled by reverse geocoding below
-    description: null,
-    coords: { lat: latlng.lat, lng: latlng.lng },
-    image: null,
-    sitelinks: {},
-    manual: true,
-  };
-
-  current = {
-    ...person,
-    emotions: Object.fromEntries(ALL_AXES.map(e => [e.key, 0])),
-    note: '',
-  };
-
-  // Preview pin on the map (visual, not yet in entries[])
-  if (!manualPreviewMarker) {
-    const icon = L.divIcon({
-      className: 'qa-pin',
-      html: '<div style="width:14px;height:14px;border-radius:50%;background:#B0C7BD;border:2px dashed #050609;box-shadow:0 1px 3px rgba(5,6,9,0.3)"></div>',
-      iconSize: [14, 14],
-      iconAnchor: [9, 9],
-    });
-    manualPreviewMarker = L.marker(latlng, { icon }).addTo(map);
-  } else {
-    manualPreviewMarker.setLatLng(latlng);
-  }
-
-  // Update form to reflect captured state (country pending)
-  renderManualLocCaptured(null);
-
-  // Show emotions panel
-  document.getElementById('panel-emotions').style.display = 'block';
-  renderSliders();
-  renderSignature();
-
-  // Reverse geocode in background; update UI + current when it arrives.
-  // Guard against the user moving the pin before the request returns
-  // (we only apply the result if coords are still the same).
-  reverseGeocode(latlng.lat, latlng.lng).then(country => {
-    if (!country) return;
-    if (!current?.manual) return;
-    if (current.coords?.lat !== latlng.lat || current.coords?.lng !== latlng.lng) return;
-    current.countryLabel = country;
-    renderManualLocCaptured(country);
-  });
-
-  showToast('Marcá lo que esta figura te genera y sumá al atlas.');
-}
-
-function cancelManualEntry() {
-  manualMode = false;
-  current = null;
-  document.getElementById('panel-manual').style.display = 'none';
-  document.getElementById('panel-emotions').style.display = 'none';
-  document.getElementById('note').value = '';
-  clearManualPreview();
-}
-
-document.getElementById('btn-close-manual').addEventListener('click', cancelManualEntry);
-
-// ============================================================
-// MAP
-// ============================================================
-function initMap() {
-  if (typeof L === 'undefined') {
-    document.getElementById('map').innerHTML =
-      '<div style="padding:32px;color:var(--ink-mute);text-align:center;font-size:13px;line-height:1.6">No se pudo cargar el mapa.<br>Revisá la conexión o probá recargar.<br><span style="font-size:11px;color:var(--ink-mute);font-family:monospace">Leaflet no disponible.</span></div>';
-    return;
-  }
-  map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([10, -30], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> · <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 18,
-  }).addTo(map);
-
-  map.on('click', (e) => {
-    if (manualMode) handleManualLocation(e.latlng);
-  });
-}
-
-// Spread overlapping pins into a circle around their shared coords.
-// Pins that share their lat/lng to ~100m precision are grouped together
-// and arranged radially around the centroid; everything else uses its
-// original coords. This is most useful for entries whose coords fell back
-// to the country centroid (Wikidata P27) because place-of-birth/death
-// wasn't available.
-function computeDisplayCoords(visibleEntries) {
-  const groups = {};
-  visibleEntries.forEach(e => {
-    if (!e.coords) return;
-    const key = `${e.coords.lat.toFixed(3)},${e.coords.lng.toFixed(3)}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(e);
-  });
-
-  const result = new Map();
-  const RADIUS_INNER = 0.45; // degrees (~50km at the equator)
-  const RADIUS_OUTER = 0.95;
-  Object.values(groups).forEach(group => {
-    if (group.length === 1) {
-      result.set(group[0].qid, group[0].coords);
-      return;
-    }
-    const baseLat = group[0].coords.lat;
-    const baseLng = group[0].coords.lng;
-    // Up to 8 pins in the inner ring; the rest in an outer ring
-    const innerN = Math.min(group.length, 8);
-    const outerN = group.length - innerN;
-    for (let i = 0; i < innerN; i++) {
-      const angle = (i / innerN) * Math.PI * 2 - Math.PI / 2;
-      result.set(group[i].qid, {
-        lat: baseLat + Math.cos(angle) * RADIUS_INNER,
-        lng: baseLng + Math.sin(angle) * RADIUS_INNER,
+  // ===== Real Leaflet map with OpenStreetMap standard tiles =====
+  // OSM standard is free, no API key. Tiles are filtered via CSS so they read
+  // neutral under the editorial palette.
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof L === 'undefined') return;
+    const map = L.map('mapCanvas', {
+      zoomControl: true,
+      worldCopyJump: true,
+      attributionControl: true,
+    }).setView([10, -40], 2);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+      maxZoom: 18,
+    }).addTo(map);
+
+    // Sample pins with the editorial palette
+    const pins = [
+      { lat: -34.6,  lng: -58.4, color: '#FFB82E', name: 'Lohana Berkins' },
+      { lat: -34.8,  lng: -58.5, color: '#E6286B', name: 'Diana Sacayán' },
+      { lat: -33.5,  lng: -70.7, color: '#118BA0', name: 'Pedro Lemebel' },
+      { lat: 19.4,   lng: -99.1, color: '#7F7D3A', name: 'Lia García' },
+      { lat: 20.6,   lng: -103.3, color: '#E6286B', name: '' },
+      { lat: 40.7,   lng: -74.0, color: '#FFB82E', name: 'Marsha P. Johnson' },
+      { lat: 40.8,   lng: -73.9, color: '#E6286B', name: 'Sylvia Rivera' },
+      { lat: 42.4,   lng: -71.1, color: '#7F7D3A', name: 'Audre Lorde' },
+      { lat: -22.9,  lng: -43.2, color: '#118BA0', name: 'Marielle Franco' },
+      { lat: 23.1,   lng: -82.4, color: '#E6286B', name: 'Reinaldo Arenas' },
+      { lat: -0.2,   lng: -78.5, color: '#C6D4C8', name: 'Pendiente', dashed: true },
+    ];
+
+    pins.forEach(p => {
+      const border = p.dashed ? '2px dashed #140A1F' : '2px solid #140A1F';
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="qa-pin-marker" style="background:${p.color};border:${border}"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
       });
-    }
-    for (let i = 0; i < outerN; i++) {
-      const angle = (i / outerN) * Math.PI * 2 - Math.PI / 2 + Math.PI / 16;
-      result.set(group[innerN + i].qid, {
-        lat: baseLat + Math.cos(angle) * RADIUS_OUTER,
-        lng: baseLng + Math.sin(angle) * RADIUS_OUTER,
-      });
-    }
-  });
-  return result;
-}
-
-function renderMap() {
-  if (!map) return;
-  Object.values(markers).forEach(m => map.removeLayer(m));
-  markers = {};
-  const visible = applyMapFilters(entries);
-  const displayCoords = computeDisplayCoords(visible);
-  visible.forEach(e => {
-    const coords = displayCoords.get(e.qid);
-    if (!coords) return;
-    const isManual = !!e.manual;
-    const color = isManual ? '#B0C7BD' : dominantEmotionColor(e.emotions);
-    const border = isManual ? '2px dashed #050609' : '2px solid #050609';
-    const icon = L.divIcon({
-      className: 'qa-pin',
-      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:${border};box-shadow:0 1px 3px rgba(5,6,9,0.3)"></div>`,
-      iconSize: [14, 14],
-      iconAnchor: [9, 9],
-    });
-    const m = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
-    const popupBody = isManual
-      ? `<strong>${escapeHtml(e.name)}</strong><br>
-         <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
-         <span style="font-size:11px;color:var(--olive);font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Sin Wikipedia o Wikidata · biografía pendiente</span>`
-      : `<strong>${escapeHtml(e.name)}</strong><br>
-         <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
-         <span style="font-size:11px;font-family:monospace;color:#888">${e.qid}</span><br>
-         <span style="font-size:11px;letter-spacing:0.04em">${LANGS.map(l => `${l.label}${e.sitelinks[l.code] ? '✓' : '✗'}`).join('  ')}</span>`;
-    m.bindPopup(popupBody);
-    markers[e.qid] = m;
-  });
-}
-
-// ============================================================
-// TIMELINE
-// ============================================================
-function renderTimeline() {
-  const axis = document.getElementById('tl-axis');
-  const decadesEl = document.getElementById('tl-decades');
-
-  // Remove old dots and any empty-state element; preserve line and popup
-  axis.querySelectorAll('.tl-dot, .tl-empty').forEach(el => el.remove());
-  decadesEl.innerHTML = '';
-  document.getElementById('tl-popup').style.display = 'none';
-  if (typeof tlPopupLocked !== 'undefined') tlPopupLocked = false;
-
-  const withYear = applyMapFilters(entries.filter(e => e.birthYear && !e.manual));
-  if (!withYear.length) {
-    const empty = document.createElement('div');
-    empty.className = 'tl-empty';
-    empty.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--ink-mute);font-style:italic;font-size:13px';
-    empty.textContent = 'Aún sin datos.';
-    axis.appendChild(empty);
-    return;
-  }
-  const years = withYear.map(e => e.birthYear);
-  const minY = Math.floor(Math.min(...years) / 10) * 10;
-  const maxY = Math.ceil(Math.max(...years) / 10) * 10;
-  const range = Math.max(maxY - minY, 10);
-
-  withYear.forEach(e => {
-    const pct = ((e.birthYear - minY) / range) * 100;
-    const dot = document.createElement('div');
-    dot.className = 'tl-dot';
-    dot.style.left = pct + '%';
-    dot.style.background = dominantEmotionColor(e.emotions);
-    dot.title = `${e.name} (${e.birthYear})`;
-    dot.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      showTimelinePopup(e, pct);
-      tlPopupLocked = true; // click locks it open until next outside click
-    });
-    dot.addEventListener('mouseenter', () => {
-      if (tlPopupLocked) return;
-      clearTimeout(tlPopupCloseTimer);
-      showTimelinePopup(e, pct);
-    });
-    dot.addEventListener('mouseleave', () => {
-      if (tlPopupLocked) return;
-      tlPopupCloseTimer = setTimeout(() => {
-        document.getElementById('tl-popup').style.display = 'none';
-      }, 280);
-    });
-    axis.appendChild(dot);
-  });
-
-  // Decade labels
-  for (let y = minY; y <= maxY; y += 10) {
-    const span = document.createElement('span');
-    span.textContent = y + 's';
-    decadesEl.appendChild(span);
-  }
-}
-
-function showTimelinePopup(entry, leftPct) {
-  const popup = document.getElementById('tl-popup');
-  popup.style.left = leftPct + '%';
-  document.getElementById('tlp-name').textContent = entry.name;
-  document.getElementById('tlp-meta').textContent =
-    `${entry.birthYear ?? '?'} – ${entry.deathYear ?? ''}`.trim();
-
-  const link = document.getElementById('tlp-link');
-  const lang = LANGS.find(l => entry.sitelinks[l.code]);
-  if (lang) {
-    link.href = `https://${lang.code}.wikipedia.org/wiki/${encodeURIComponent(entry.sitelinks[lang.code])}`;
-    link.textContent = `Ver en Wikipedia · ${lang.label} →`;
-    link.style.display = 'inline-flex';
-  } else {
-    link.style.display = 'none';
-  }
-
-  popup.style.display = 'block';
-}
-
-let tlPopupCloseTimer = null;
-let tlPopupLocked = false;
-
-// When the mouse enters the popup itself, cancel any pending close
-document.getElementById('tl-popup').addEventListener('mouseenter', () => {
-  clearTimeout(tlPopupCloseTimer);
-});
-document.getElementById('tl-popup').addEventListener('mouseleave', () => {
-  if (tlPopupLocked) return;
-  tlPopupCloseTimer = setTimeout(() => {
-    document.getElementById('tl-popup').style.display = 'none';
-  }, 280);
-});
-
-document.getElementById('tl-popup').querySelector('.tlp-close').addEventListener('click', (e) => {
-  e.stopPropagation();
-  document.getElementById('tl-popup').style.display = 'none';
-  tlPopupLocked = false;
-});
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.tl-dot') && !e.target.closest('.tl-popup')) {
-    document.getElementById('tl-popup').style.display = 'none';
-    tlPopupLocked = false;
-  }
-});
-
-// ============================================================
-// VIEW TOGGLE
-// ============================================================
-document.querySelectorAll('.map-toggle button').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.map-toggle button').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    const v = b.dataset.view;
-    if (v === 'map') {
-      document.getElementById('map').style.display = 'block';
-      document.getElementById('timeline').classList.remove('on');
-      setTimeout(() => { if (map) map.invalidateSize(); }, 50);
-    } else {
-      document.getElementById('map').style.display = 'none';
-      document.getElementById('timeline').classList.add('on');
-      renderTimeline();
-    }
-  });
-});
-
-// ============================================================
-// GALLERY
-// ============================================================
-// ============================================================
-// FILTERS + CAROUSEL STATE
-// ============================================================
-let filterEmotion = '';   // '' = todas, else axis key
-let filterCountry = '';   // gallery: '' = todos, country label, or '__none'
-let filterMapCountry = ''; // map: same scheme, independent state
-let filterMapBio = '';    // map: '' = todas, 'yes' = con biografía, 'no' = sin
-let filterSort = 'newest'; // newest | oldest | birthAsc | birthDesc | az | za
-
-// A person "has a biography" if they have at least one Wikipedia article
-// in any of the tracked languages. Manual entries (no Wikidata) never do.
-function hasBiography(entry) {
-  if (entry.manual) return false;
-  if (!entry.sitelinks) return false;
-  return LANGS.some(l => entry.sitelinks[l.code]);
-}
-
-function sortEntries(arr, mode) {
-  const a = arr.slice();
-  switch (mode) {
-    case 'oldest':
-      return a.sort((x, y) => (x.submitted_at || '').localeCompare(y.submitted_at || ''));
-    case 'birthAsc':
-      return a.sort((x, y) => (x.birthYear ?? Infinity) - (y.birthYear ?? Infinity));
-    case 'birthDesc':
-      return a.sort((x, y) => (y.birthYear ?? -Infinity) - (x.birthYear ?? -Infinity));
-    case 'az':
-      return a.sort((x, y) => x.name.localeCompare(y.name, 'es'));
-    case 'za':
-      return a.sort((x, y) => y.name.localeCompare(x.name, 'es'));
-    case 'newest':
-    default:
-      return a.sort((x, y) => (y.submitted_at || '').localeCompare(x.submitted_at || ''));
-  }
-}
-
-function applyGalleryFilters(arr) {
-  return arr.filter(e => {
-    if (filterCountry) {
-      const c = e.countryLabel || '__none';
-      if (filterCountry === '__none' ? c !== '__none' : c !== filterCountry) return false;
-    }
-    return true;
-  });
-}
-
-function applyMapFilters(arr) {
-  return arr.filter(e => {
-    if (filterEmotion && dominantEmotionKey(e.emotions) !== filterEmotion) return false;
-    if (filterMapCountry) {
-      const c = e.countryLabel || '__none';
-      if (filterMapCountry === '__none' ? c !== '__none' : c !== filterMapCountry) return false;
-    }
-    if (filterMapBio) {
-      const hasIt = hasBiography(e);
-      if (filterMapBio === 'yes' && !hasIt) return false;
-      if (filterMapBio === 'no' && hasIt) return false;
-    }
-    return true;
-  });
-}
-
-function renderEmotionFilter() {
-  const wrap = document.getElementById('emotion-pills');
-  if (!wrap) return;
-  const pills = [
-    `<button class="filter-btn ${filterEmotion === '' ? 'active' : ''}" data-emotion="">Todas</button>`,
-    ...ALL_AXES.map(a =>
-      `<button class="filter-btn emotion-pill ${filterEmotion === a.key ? 'active' : ''}" data-emotion="${a.key}" style="--c:${a.color}">${a.label}</button>`
-    )
-  ];
-  wrap.innerHTML = pills.join('');
-  wrap.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterEmotion = btn.dataset.emotion;
-      renderEmotionFilter();
-      renderMap();
-      if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+      const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
+      if (p.name) marker.bindPopup(`<strong>${p.name}</strong>`);
     });
   });
-}
 
-function renderCountryPills(containerId, currentValue, onChange) {
-  const wrap = document.getElementById(containerId);
-  if (!wrap) return;
-  const countries = new Set();
-  let hasNone = false;
-  entries.forEach(e => {
-    if (e.countryLabel) countries.add(e.countryLabel);
-    else hasNone = true;
+  // Panel dot indicators sync with horizontal scroll
+  const rail = document.getElementById('heroRail');
+  const dots = document.querySelectorAll('.panel-dot');
+  rail.addEventListener('scroll', () => {
+    const idx = Math.round(rail.scrollLeft / window.innerWidth);
+    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
   });
-  const sortedCountries = Array.from(countries).sort((a, b) => a.localeCompare(b, 'es'));
-  const pills = [
-    `<button class="filter-btn ${currentValue === '' ? 'active' : ''}" data-country="">Todos</button>`,
-    ...sortedCountries.map(c =>
-      `<button class="filter-btn ${currentValue === c ? 'active' : ''}" data-country="${escapeHtml(c)}">${escapeHtml(c)}</button>`
-    ),
-  ];
-  if (hasNone) {
-    pills.push(`<button class="filter-btn ${currentValue === '__none' ? 'active' : ''}" data-country="__none">Sin país</button>`);
-  }
-  wrap.innerHTML = pills.join('');
-  wrap.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => onChange(btn.dataset.country));
-  });
-}
-
-function renderCountryFilter() {
-  renderCountryPills('country-pills', filterCountry, (val) => {
-    filterCountry = val;
-    renderGallery();
-  });
-}
-
-function renderMapCountryFilter() {
-  renderCountryPills('map-country-pills', filterMapCountry, (val) => {
-    filterMapCountry = val;
-    renderMapCountryFilter(); // re-render to update active state
-    renderMap();
-    if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
-  });
-}
-
-function renderBioFilter() {
-  const wrap = document.getElementById('bio-pills');
-  if (!wrap) return;
-  const pills = [
-    { v: '', label: 'Todas' },
-    { v: 'yes', label: 'Sí tiene' },
-    { v: 'no', label: 'No tiene' },
-  ];
-  wrap.innerHTML = pills.map(p =>
-    `<button class="filter-btn ${filterMapBio === p.v ? 'active' : ''}" data-bio="${p.v}">${p.label}</button>`
-  ).join('');
-  wrap.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterMapBio = btn.dataset.bio;
-      renderBioFilter();
-      renderMap();
-      if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
+  dots.forEach(d => {
+    d.addEventListener('click', () => {
+      const idx = parseInt(d.dataset.panel);
+      rail.scrollTo({ left: idx * window.innerWidth, behavior: 'smooth' });
     });
   });
-}
-
-function renderSortFilter() {
-  const wrap = document.getElementById('sort-pills');
-  if (!wrap) return;
-  wrap.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sort === filterSort);
-    if (!btn.dataset.bound) {
-      btn.dataset.bound = '1';
-      btn.addEventListener('click', () => {
-        filterSort = btn.dataset.sort;
-        renderGallery();
-      });
-    }
-  });
-}
-
-function updateCardWidth() {
-  const viewport = document.getElementById('cards-viewport');
-  if (!viewport) return;
-  const vw = viewport.clientWidth;
-  const gap = 16;
-  const cardWidth = Math.max(180, Math.floor((vw - 4 * gap) / 5));
-  document.documentElement.style.setProperty('--qa-card-w', cardWidth + 'px');
-}
-
-function renderCard(e) {
-  const sigId = 'gsig-' + e.qid;
-  const notes = e.notes || [];
-  const contribCount = (e.contributions || []).length;
-
-  // Render the contributor messages block (shared between both card types)
-  const messagesHTML = notes.length ? `
-    <div class="c-messages">
-      ${notes.map(n => `<div class="c-msg">${escapeHtml(n)}</div>`).join('')}
-    </div>
-  ` : '';
-  const contribTag = contribCount > 1
-    ? `<div class="c-contribs">${contribCount} marcas</div>`
-    : '';
-
-  if (e.manual) {
-    return `
-      <div class="card manual">
-        <div class="c-badge">Sin Wikipedia o Wikidata</div>
-        <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
-        <div class="c-name">${escapeHtml(e.name)}</div>
-        <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
-        ${contribTag}
-        <div class="c-note">Esta persona no cuenta con su biografía en Wikipedia, ni sus datos en Wikidata. <strong>¿Te sumás a escribirla?</strong></div>
-        ${messagesHTML}
-      </div>
-    `;
-  }
-  const langs = LANGS.map(l => `<span class="${e.sitelinks[l.code] ? 'y' : 'n'}">${l.label}</span>`).join('');
-  return `
-    <div class="card">
-      <div class="c-sig"><svg id="${sigId}" viewBox="0 0 200 200"></svg></div>
-      <div class="c-name">${escapeHtml(e.name)}</div>
-      <div class="c-meta">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</div>
-      <div class="c-langs">${langs}</div>
-      ${contribTag}
-      ${messagesHTML}
-    </div>
-  `;
-}
-
-function renderGallery() {
-  const wrap = document.getElementById('gallery-content');
-  const filtersWrap = document.getElementById('gallery-filters');
-
-  if (!entries.length) {
-    if (filtersWrap) filtersWrap.style.display = 'none';
-    wrap.innerHTML = '<div class="empty-gallery">Todavía no hay personas en el atlas. Buscá una arriba o sumá una manualmente desde el buscador.</div>';
-    return;
-  }
-
-  if (filtersWrap) filtersWrap.style.display = 'block';
-  renderSortFilter();
-  renderCountryFilter();
-
-  const filtered = applyGalleryFilters(entries);
-  const sorted = sortEntries(filtered, filterSort);
-
-  if (!sorted.length) {
-    wrap.innerHTML = '<div class="empty-gallery">Sin tarjetas para los filtros actuales.</div>';
-    return;
-  }
-
-  const cardsHTML = sorted.map(renderCard).join('');
-  const showCarousel = sorted.length > 5;
-  wrap.innerHTML = `
-    <div class="carousel-viewport" id="cards-viewport">
-      <div class="cards-track" id="cards-track">${cardsHTML}</div>
-    </div>
-    ${showCarousel ? `
-      <div class="carousel-controls">
-        <div class="carousel-info" id="carousel-info"></div>
-        <div class="carousel-buttons">
-          <button class="carousel-btn" id="carousel-prev" aria-label="Anterior">‹</button>
-          <button class="carousel-btn" id="carousel-next" aria-label="Siguiente">›</button>
-        </div>
-      </div>
-    ` : ''}
-  `;
-
-  // Sizing for the carousel
-  updateCardWidth();
-
-  // Render signatures
-  sorted.forEach(e => {
-    const svg = document.getElementById('gsig-' + e.qid);
-    if (svg) renderSignature(svg, e.emotions);
-  });
-
-  if (showCarousel) wireCarousel(sorted.length);
-}
-
-function wireCarousel(total) {
-  const viewport = document.getElementById('cards-viewport');
-  const prev = document.getElementById('carousel-prev');
-  const next = document.getElementById('carousel-next');
-  const info = document.getElementById('carousel-info');
-  if (!viewport || !prev || !next || !info) return;
-
-  function step() {
-    const w = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--qa-card-w')) || 220;
-    return w + 16;
-  }
-  function update() {
-    prev.disabled = viewport.scrollLeft <= 1;
-    next.disabled = viewport.scrollLeft >= viewport.scrollWidth - viewport.clientWidth - 1;
-    const visStart = Math.round(viewport.scrollLeft / step()) + 1;
-    const visEnd = Math.min(visStart + 4, total);
-    info.textContent = `${visStart}–${visEnd} de ${total} tarjetas`;
-  }
-  prev.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
-  next.addEventListener('click', () => viewport.scrollBy({ left: step(), behavior: 'smooth' }));
-  viewport.addEventListener('scroll', update);
-  update();
-}
-
-window.addEventListener('resize', () => {
-  if (document.getElementById('cards-viewport')) updateCardWidth();
-});
-
-// ============================================================
-// STATS
-// ============================================================
-function renderStats() {
-  document.getElementById('st-total').textContent = entries.length;
-  const wd = entries.filter(e => !e.manual); // language gaps only apply to Wikidata-known figures
-  document.getElementById('st-es').textContent = wd.filter(e => !e.sitelinks.es).length;
-  document.getElementById('st-en').textContent = wd.filter(e => !e.sitelinks.en).length;
-  document.getElementById('st-fr').textContent = wd.filter(e => !e.sitelinks.fr).length;
-  document.getElementById('st-pt').textContent = wd.filter(e => !e.sitelinks.pt).length;
-  document.getElementById('st-none').textContent = wd.filter(e => !LANGS.some(l => e.sitelinks[l.code])).length;
-}
-
-function refreshAll() {
-  renderStats();
-  // Show/hide map emotion filters based on whether there's anything to filter
-  const mapFilters = document.getElementById('map-filters');
-  if (mapFilters) {
-    if (entries.length) {
-      mapFilters.style.display = 'block';
-      renderEmotionFilter();
-      renderMapCountryFilter();
-      renderBioFilter();
-    } else {
-      mapFilters.style.display = 'none';
-    }
-  }
-  renderMap();
-  renderGallery();
-  refreshExportButtons();
-  if (document.getElementById('timeline').classList.contains('on')) renderTimeline();
-}
-
-// ============================================================
-// HELPERS
-// ============================================================
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function initials(name) {
-  return name.split(/\s+/).slice(0, 2).map(s => s[0] || '').join('').toUpperCase();
-}
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-// ============================================================
-// EXPORT
-// ============================================================
-async function fetchCreationDate(title, lang) {
-  if (!title) return null;
-  try {
-    const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=revisions&titles=${encodeURIComponent(title)}&rvlimit=1&rvdir=newer&rvprop=timestamp&format=json&origin=*`;
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    const d = await r.json();
-    const pages = d.query?.pages || {};
-    const page = Object.values(pages)[0];
-    const ts = page?.revisions?.[0]?.timestamp;
-    return ts ? ts.split('T')[0] : null; // YYYY-MM-DD
-  } catch (e) { return null; }
-}
-
-async function buildExportRows() {
-  const rows = [];
-  for (const entry of entries) {
-    const isManual = !!entry.manual;
-    const row = {
-      nombre: entry.name,
-      qid: isManual ? '' : entry.qid,
-      wikidata_url: isManual ? '' : `https://www.wikidata.org/wiki/${entry.qid}`,
-      lugar: entry.pobLabel || '',
-      ano_nacimiento: entry.birthYear || '',
-      ano_muerte: entry.deathYear || '',
-      descripcion: entry.description || '',
-      coords_lat: entry.coords?.lat ?? '',
-      coords_lng: entry.coords?.lng ?? '',
-    };
-
-    if (isManual) {
-      // No sitelinks, no creation dates to fetch
-      for (const lang of LANGS) {
-        row[`wikipedia_${lang.code}`] = '';
-        row[`creacion_${lang.code}`] = '';
-      }
-    } else {
-      // Fetch creation dates in parallel for the 4 languages
-      const langResults = await Promise.all(LANGS.map(async lang => {
-        const title = entry.sitelinks[lang.code];
-        if (!title) return { lang: lang.code, url: '', created: '' };
-        const created = await fetchCreationDate(title, lang.code);
-        return {
-          lang: lang.code,
-          url: `https://${lang.code}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
-          created: created || '',
-        };
-      }));
-      langResults.forEach(r => {
-        row[`wikipedia_${r.lang}`] = r.url;
-        row[`creacion_${r.lang}`] = r.created;
-      });
-    }
-
-    rows.push(row);
-  }
-  return rows;
-}
-
-function rowsToCSV(rows) {
-  if (!rows.length) return '';
-  const headers = Object.keys(rows[0]);
-  const esc = (v) => {
-    const s = String(v ?? '');
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [headers.join(',')];
-  rows.forEach(row => lines.push(headers.map(h => esc(row[h])).join(',')));
-  return '\ufeff' + lines.join('\n'); // BOM for Excel UTF-8 compatibility
-}
-
-function downloadFile(filename, content, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-async function runExport(format) {
-  const csvBtn = document.getElementById('btn-csv');
-  const jsonBtn = document.getElementById('btn-json');
-  const btn = format === 'csv' ? csvBtn : jsonBtn;
-  const originalText = btn.textContent;
-  csvBtn.disabled = true;
-  jsonBtn.disabled = true;
-  btn.textContent = 'Generando…';
-
-  try {
-    const rows = await buildExportRows();
-    const date = new Date().toISOString().split('T')[0];
-    if (format === 'csv') {
-      downloadFile(`queer-atlas-${date}.csv`, rowsToCSV(rows), 'text/csv;charset=utf-8');
-    } else {
-      downloadFile(`queer-atlas-${date}.json`, JSON.stringify(rows, null, 2), 'application/json');
-    }
-    showToast(`${rows.length} ${rows.length === 1 ? 'registro descargado' : 'registros descargados'}.`);
-  } catch (e) {
-    showToast('Error al generar el archivo.');
-  } finally {
-    btn.textContent = originalText;
-    refreshExportButtons();
-  }
-}
-
-function refreshExportButtons() {
-  const disabled = entries.length === 0;
-  document.getElementById('btn-csv').disabled = disabled;
-  document.getElementById('btn-json').disabled = disabled;
-}
-
-document.getElementById('btn-csv').addEventListener('click', () => runExport('csv'));
-document.getElementById('btn-json').addEventListener('click', () => runExport('json'));
-
-// ============================================================
-// BACKFILL: old entries saved before countryLabel existed
-// ============================================================
-async function backfillCountries() {
-  // Old entries have countryLabel === undefined (the field didn't exist yet).
-  // New entries have it as string (label) or null (Wikidata has no P27).
-  // We backfill the undefined ones.
-  // For Wikidata-backed entries: query Wikidata's P27.
-  // For manual entries: reverse-geocode their coords via Nominatim.
-  const wikidataToBackfill = entries.filter(e => !e.manual && e.countryLabel === undefined);
-  const manualToBackfill = entries.filter(e => e.manual && !e.countryLabel && e.coords);
-  if (!wikidataToBackfill.length && !manualToBackfill.length) return;
-
-  const updatedEntries = [];
-
-  for (const entry of wikidataToBackfill) {
-    try {
-      const ent = await wdGetEntity(entry.qid);
-      if (!ent) continue;
-      const cocQid = ent.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id;
-      entry.countryLabel = cocQid ? (await wdGetLabel(cocQid)) : null;
-      updatedEntries.push(entry);
-    } catch (e) {
-      // Network error — leave undefined so we retry next load
-    }
-  }
-
-  for (const entry of manualToBackfill) {
-    try {
-      const country = await reverseGeocode(entry.coords.lat, entry.coords.lng);
-      if (country) {
-        entry.countryLabel = country;
-        updatedEntries.push(entry);
-      }
-    } catch (e) {
-      // Network error — try again next load
-    }
-  }
-
-  if (updatedEntries.length > 0) {
-    cacheEntries();
-    refreshAll();
-    // Also push updates to Supabase (one row each)
-    if (supabaseClient) {
-      for (const e of updatedEntries) {
-        try { await updatePersonRow(e); }
-        catch (err) { console.warn('Backfill push failed for', e.qid, err); }
-      }
-    }
-    const n = updatedEntries.length;
-    showToast(`Actualizado: ${n} ${n === 1 ? 'país recuperado' : 'países recuperados'}.`);
-  }
-}
-
-// ============================================================
-// MIGRATION: push local entries to Supabase (one-time)
-// ============================================================
-async function migrateLocalToRemote() {
-  if (!supabaseClient) {
-    showToast('Supabase no está configurado.');
-    return;
-  }
-  const btn = document.getElementById('btn-migrate');
-  const original = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Subiendo…';
-  let pushed = 0;
-  let failed = 0;
-
-  for (const entry of entries) {
-    const contribs = entry.contributions || [];
-    if (!contribs.length) continue;
-    try {
-      // Upsert person
-      await updatePersonRow(entry);
-      // Insert each contribution (with original timestamps if present)
-      for (const c of contribs) {
-        const { error } = await supabaseClient.from('contributions').insert({
-          person_qid: entry.qid,
-          emotions: c.emotions || {},
-          note: c.note || '',
-          submitted_at: c.submitted_at || new Date().toISOString(),
-        });
-        if (error) throw error;
-      }
-      pushed++;
-    } catch (e) {
-      console.warn('Migration failed for', entry.qid, e);
-      failed++;
-    }
-  }
-
-  localStorage.setItem(MIGRATION_FLAG_KEY, new Date().toISOString());
-  btn.style.display = 'none';
-  btn.disabled = false;
-  btn.textContent = original;
-  showToast(failed === 0
-    ? `${pushed} ${pushed === 1 ? 'persona subida' : 'personas subidas'} a Supabase.`
-    : `Subidas ${pushed}, fallaron ${failed}. Revisá la consola del navegador.`);
-  // Pull fresh from remote so we see exactly what's there
-  await refreshFromRemote();
-}
-
-document.getElementById('btn-migrate').addEventListener('click', migrateLocalToRemote);
-
-function maybeShowMigrationButton(remoteCount) {
-  // Show the button when:
-  //  - Supabase is configured
-  //  - The migration flag isn't already set
-  //  - We have local entries that the remote doesn't seem to have
-  if (!supabaseClient) return;
-  if (localStorage.getItem(MIGRATION_FLAG_KEY)) return;
-  const localCount = entries.length;
-  if (localCount > 0 && remoteCount < localCount) {
-    document.getElementById('btn-migrate').style.display = '';
-  }
-}
-
-// ============================================================
-// INIT
-// ============================================================
-initMap();
-refreshAll();             // shows cached entries instantly
-backfillCountries();      // runs in background
-
-// Then hydrate from Supabase and subscribe to live updates
-(async () => {
-  if (!supabaseClient) return;
-  try {
-    const remote = await loadEntriesFromRemote();
-    if (remote) {
-      const remoteCount = remote.length;
-      // Replace local state with remote (source of truth)
-      entries = remote;
-      cacheEntries();
-      refreshAll();
-      maybeShowMigrationButton(remoteCount);
-    }
-    subscribeToRealtime();
-  } catch (e) {
-    console.warn('Initial Supabase load failed:', e);
-    showToast('Sin conexión a la base colectiva. Mostrando datos locales.');
-  }
-})();
 </script>
-
 </body>
 </html>
