@@ -1158,16 +1158,15 @@
   .card.manual { background: var(--sage-soft); border-color: var(--sage); }
   .card .c-sig {
     aspect-ratio: 1;
-    background: var(--cream);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
-    clip-path: path('M 20,100 C 20,40 60,10 120,15 C 180,20 220,55 215,115 C 210,175 170,210 110,205 C 50,200 20,160 20,100 Z');
+    overflow: visible;
   }
-  .card.manual .c-sig { background: rgba(255,255,255,0.5); }
-  .card .c-sig svg { width: 90%; height: 90%; }
+  .card.manual .c-sig { background: transparent; }
+  .card .c-sig svg { width: 100%; height: 100%; }
   .card .c-name {
     font-family: var(--display);
     font-weight: 500;
@@ -1381,6 +1380,456 @@
     .gallery-header { flex-direction: column; align-items: flex-start; }
   }
 
+  /* ============================================================
+     HERO RAIL — horizontal scroll with 3 panels
+     ============================================================ */
+  .hero-rail {
+    position: relative;
+    height: min(720px, 92vh);
+    min-height: 580px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 48px;
+    cursor: grab;
+  }
+  .hero-rail:active { cursor: grabbing; }
+  .hero-rail.dragging { scroll-snap-type: none; cursor: grabbing; }
+  .hero-rail::-webkit-scrollbar { display: none; }
+
+  .hero-track {
+    display: flex;
+    height: 100%;
+    width: max-content;
+  }
+
+  .hero-panel {
+    flex: 0 0 100vw;
+    height: 100%;
+    scroll-snap-align: start;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 60px clamp(24px, 4vw, 56px);
+    overflow: hidden;
+  }
+
+  /* --- Panel 1: título --- */
+  .hero-1 {
+    background:
+      radial-gradient(circle at 15% 85%, rgba(230,40,107,0.18), transparent 50%),
+      radial-gradient(circle at 85% 15%, rgba(255,184,46,0.25), transparent 55%),
+      var(--cream);
+  }
+  .organic-blob {
+    position: absolute;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  .organic-blob svg { width: 100%; height: 100%; display: block; }
+  .hero-blob-aub {
+    width: 620px; height: 580px;
+    top: -140px; right: -160px;
+    opacity: 0.92;
+    animation: blob-drift-1 22s ease-in-out infinite;
+  }
+  .hero-blob-mag {
+    width: 380px; height: 340px;
+    bottom: -90px; left: 6%;
+    opacity: 0.55;
+    animation: blob-drift-2 28s ease-in-out infinite reverse;
+  }
+
+  .hero-content { position: relative; z-index: 2; max-width: 920px; }
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+    margin-bottom: 28px;
+    padding: 7px 12px 7px 10px;
+    background: rgba(255,184,46,0.4);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    transform: rotate(-1.2deg);
+  }
+  .hero-kicker .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--magenta);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(64px, 11vw, 160px);
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 24px;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  }
+  .hero-title .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--magenta);
+    display: inline-block;
+    transform: translateY(0.05em);
+  }
+  .hero-title .amber-under {
+    position: relative;
+    display: inline-block;
+  }
+  .hero-title .amber-under::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -4px; bottom: 0.1em; height: 0.28em;
+    background: var(--amber);
+    z-index: -1;
+    transform: skewX(-6deg);
+  }
+
+  .hero-lede {
+    max-width: 580px;
+    font-family: var(--body);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 36px;
+  }
+  .hero-lede em {
+    font-family: var(--italic);
+    font-size: 24px;
+    font-style: italic;
+    color: var(--aubergine);
+  }
+
+  .scroll-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .scroll-hint-arrow {
+    width: 50px; height: 1.5px;
+    background: var(--ink);
+    position: relative;
+    animation: arrow-slide 2.4s ease-in-out infinite;
+  }
+  .scroll-hint-arrow::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    width: 10px; height: 10px;
+    border-right: 1.5px solid var(--ink);
+    border-top: 1.5px solid var(--ink);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  @keyframes arrow-slide {
+    0%, 100% { transform: translateX(0); opacity: 1; }
+    50% { transform: translateX(12px); opacity: 0.6; }
+  }
+
+  .seal {
+    position: absolute;
+    bottom: 40px; right: 56px;
+    width: 140px; height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    animation: rotate-slow 24s linear infinite;
+    color: var(--ink);
+  }
+  @keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .seal svg { width: 100%; height: 100%; }
+  .seal-text {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    fill: var(--ink);
+    text-transform: uppercase;
+  }
+  .seal-center {
+    position: absolute;
+    font-family: var(--italic);
+    font-style: italic;
+    font-size: 28px;
+    color: var(--magenta);
+    animation: rotate-slow 24s linear infinite reverse;
+  }
+
+  /* --- Panel 2: manifesto --- */
+  .hero-2 {
+    background: linear-gradient(135deg, var(--aubergine-deep) 0%, var(--aubergine) 55%, #4F2766 100%);
+    color: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .hero-2-stripe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 10px;
+    background: linear-gradient(90deg,
+      var(--amber) 0%, var(--amber) 15%,
+      var(--magenta) 15%, var(--magenta) 32%,
+      var(--teal) 32%, var(--teal) 48%,
+      var(--olive) 48%, var(--olive) 65%,
+      var(--sage) 65%, var(--sage) 82%,
+      var(--cream) 82%, var(--cream) 100%);
+  }
+  .hero-2-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 28px;
+  }
+  .hero-2-title {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(42px, 5.5vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 36px;
+    color: var(--cream);
+    font-variation-settings: 'opsz' 144;
+  }
+  .hero-2-title .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    color: var(--amber);
+    font-weight: 400;
+  }
+  .hero-2-title .strike {
+    text-decoration: line-through;
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--magenta);
+    opacity: 0.7;
+  }
+  .hero-2-body {
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(245,239,227,0.88);
+    max-width: 480px;
+    margin-bottom: 16px;
+  }
+  .hero-2-right {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .big-sig {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    aspect-ratio: 1;
+  }
+  .big-sig svg { width: 100%; height: 100%; }
+  .sig-label {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cream);
+    opacity: 0.85;
+  }
+  .sig-label-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* --- Panel 3: evento + CTA --- */
+  .hero-3 {
+    background: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .hero-blob-teal {
+    width: 520px; height: 480px;
+    bottom: -160px; right: -120px;
+    opacity: 0.88;
+    animation: blob-drift-1 26s ease-in-out infinite;
+  }
+  .hero-3-start { position: relative; z-index: 2; }
+  .hero-3-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+    margin-bottom: 28px;
+  }
+  .hero-3-title {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 144;
+  }
+  .hero-3-title .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    color: var(--teal);
+  }
+  .hero-3-lede {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    opacity: 0.8;
+    margin-bottom: 28px;
+    max-width: 380px;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--ink);
+    padding: 14px 20px;
+    text-decoration: none;
+    border: 1.5px solid var(--ink);
+    border-radius: 100px;
+    transition: all 0.2s;
+  }
+  .hero-cta:hover {
+    background: var(--magenta);
+    border-color: var(--magenta);
+    color: var(--cream);
+  }
+  .hero-cta .arrow { font-family: var(--mono); font-weight: 700; }
+
+  .month-event {
+    position: relative;
+    z-index: 2;
+    background: var(--amber);
+    border: 1.5px solid var(--ink);
+    padding: 32px 28px;
+    transform: rotate(-1.5deg);
+    box-shadow: 10px 10px 0 var(--aubergine);
+    max-width: 440px;
+    justify-self: end;
+  }
+  .month-event-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--amber);
+    padding: 5px 10px;
+    margin-bottom: 18px;
+  }
+  .month-event h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 34px;
+    line-height: 1;
+    margin-bottom: 10px;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 144;
+  }
+  .month-event h3 .italic {
+    font-family: var(--italic);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .month-event p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+  .month-event .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: var(--ink);
+    padding: 12px 18px;
+    text-decoration: none;
+    border: 1.5px solid var(--ink);
+    transition: all 0.2s;
+  }
+  .month-event .cta:hover {
+    background: var(--magenta);
+    color: var(--cream);
+    border-color: var(--magenta);
+  }
+  .month-event .cta .arrow { font-family: var(--mono); font-weight: 700; }
+
+  /* --- Panel indicators --- */
+  .panel-dots {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 50;
+  }
+  .panel-dot {
+    width: 32px; height: 4px;
+    background: rgba(20,10,31,0.25);
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s;
+  }
+  .panel-dot.on { background: var(--ink); }
+  .panel-dot[data-panel="1"] { /* on hero-2 the dots recolor */ }
+
+  @media (max-width: 760px) {
+    .hero-rail { height: min(700px, 95vh); }
+    .hero-2, .hero-3 { grid-template-columns: 1fr; gap: 32px; }
+    .hero-2-right, .hero-3 .month-event { max-width: 100%; justify-self: stretch; }
+    .big-sig { max-width: 280px; margin: 0 auto; }
+    .seal { width: 90px; height: 90px; bottom: 20px; right: 20px; }
+    .hero-blob-aub { width: 400px; height: 380px; top: -80px; right: -100px; }
+    .hero-blob-mag { width: 260px; height: 220px; bottom: -40px; }
+    .hero-blob-teal { width: 360px; height: 320px; bottom: -80px; right: -60px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -1388,24 +1837,162 @@
 </head>
 <body>
 
-<div class="page">
+<!-- ==========================================================
+     HERO RAIL — horizontal scroll with 3 panels
+     ========================================================== -->
+<div class="hero-rail" id="heroRail">
+  <div class="hero-track">
 
-<header class="masthead">
-  <div class="kicker">Cartografía afectiva · v0.1 prototipo</div>
-  <h1>Queer Atlas</h1>
-  <p class="lede">Mapeá a las figuras queer que te importan. Anclalas a un lugar. Decí qué le agradecés. Si Wikipedia no las tiene, el atlas te lleva al editor.</p>
-</header>
+    <!-- Panel 1 -->
+    <section class="hero-panel hero-1">
+      <div class="organic-blob hero-blob-aub">
+        <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <defs>
+            <radialGradient id="aub-grad" cx="30%" cy="30%">
+              <stop offset="0%" stop-color="#3B1C4F"/>
+              <stop offset="100%" stop-color="#26112F"/>
+            </radialGradient>
+          </defs>
+          <path d="M 460,120 C 540,180 560,280 520,370 C 490,440 410,490 320,480 C 220,470 130,420 100,330 C 70,240 110,140 190,90 C 260,50 380,60 460,120 Z" fill="url(#aub-grad)"/>
+        </svg>
+      </div>
+      <div class="organic-blob hero-blob-mag">
+        <svg viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <path d="M 320,80 C 370,130 380,210 340,270 C 300,330 210,340 140,300 C 70,260 40,180 70,110 C 100,40 180,20 250,40 C 285,50 300,60 320,80 Z" fill="#E6286B"/>
+        </svg>
+      </div>
 
-<aside class="event-card">
-  <div class="ec-content">
-    <div class="ec-kicker">Wikiproyecto:LGBT · Wikipedia en español</div>
-    <h3>Evento del Mes</h3>
-    <p>Cada mes la comunidad elige un tema, país o categoría y crea biografías queer nuevas. Es donde nace la lista que alimenta este atlas — sumate al desafío activo.</p>
+      <div class="hero-content">
+        <div class="hero-kicker">
+          <span class="dot"></span>
+          <span>una cartografía queer · colectiva</span>
+        </div>
+
+        <h1 class="hero-title">
+          Queer<br>
+          <span class="italic">Atlas</span><br>
+          <span class="amber-under">afectivo</span>
+        </h1>
+
+        <p class="hero-lede">
+          Una cartografía <em>colectiva</em> de biografías queer en Wikipedia. Lo que nos dieron, lo que todavía duele, lo que falta por escribir.
+        </p>
+
+        <div class="scroll-hint">
+          <span>Deslizá</span>
+          <span class="scroll-hint-arrow"></span>
+        </div>
+      </div>
+
+      <div class="seal" aria-hidden="true">
+        <svg viewBox="0 0 160 160">
+          <defs>
+            <path id="seal-circle" d="M 80,80 m -62,0 a 62,62 0 1,1 124,0 a 62,62 0 1,1 -124,0"/>
+          </defs>
+          <circle cx="80" cy="80" r="76" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+          <text class="seal-text">
+            <textPath href="#seal-circle">memoria queer · afecto como método · wikipedia como archivo · </textPath>
+          </text>
+        </svg>
+        <span class="seal-center">*</span>
+      </div>
+    </section>
+
+    <!-- Panel 2 -->
+    <section class="hero-panel hero-2">
+      <div class="hero-2-stripe"></div>
+
+      <div class="hero-2-left">
+        <div class="hero-2-eyebrow">Manifesto · 01</div>
+        <h2 class="hero-2-title">
+          Mapeamos lo que <span class="italic">sentimos</span><br>
+          no solo <span class="strike">lo que se escribió.</span>
+        </h2>
+        <p class="hero-2-body">
+          Wikipedia es un terreno disputado de memoria. Decidimos qué biografías anclan dónde, en qué idiomas sobreviven, y cuáles vidas quedan sin mapear porque les falta la documentación que el saber institucional exige.
+        </p>
+        <p class="hero-2-body">
+          El Atlas añade una capa: las emociones que estas figuras nos generan. Coraje, ternura, rabia, duelo. Firmas afectivas colectivas superpuestas.
+        </p>
+      </div>
+
+      <div class="hero-2-right">
+        <div class="big-sig">
+          <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 420,180 C 450,240 440,320 400,360 C 360,410 280,420 220,400 C 160,380 110,340 90,280 C 70,220 100,160 150,130 C 220,90 320,100 380,140 C 400,155 410,165 420,180 Z" fill="#FFB82E" opacity="0.6"/>
+            <path d="M 400,200 C 420,250 400,320 360,350 C 310,390 240,390 200,370 C 150,350 110,310 110,260 C 110,210 140,160 200,140 C 270,120 350,140 380,170 C 395,180 400,190 400,200 Z" fill="#E6286B" opacity="0.5"/>
+            <path d="M 380,250 C 390,290 370,340 330,360 C 290,380 230,370 200,340 C 170,310 150,270 170,230 C 190,190 230,170 280,180 C 330,190 370,210 380,250 Z" fill="#118BA0" opacity="0.55"/>
+            <path d="M 350,280 C 360,320 335,350 300,355 C 260,360 210,345 200,310 C 190,275 215,245 250,240 C 290,235 340,250 350,280 Z" fill="#7F7D3A" opacity="0.5"/>
+            <path d="M 330,240 C 345,275 330,310 300,320 C 265,330 225,315 220,285 C 215,250 240,225 275,225 C 305,225 325,225 330,240 Z" fill="#C6D4C8" opacity="0.6"/>
+            <circle cx="260" cy="275" r="4" fill="#F5EFE3"/>
+          </svg>
+          <div class="sig-label" style="top: 8%; left: 2%;">
+            <span class="sig-label-dot" style="background: #FFB82E;"></span>Coraje
+          </div>
+          <div class="sig-label" style="top: 22%; right: 2%;">
+            <span class="sig-label-dot" style="background: #E6286B;"></span>Visibilidad
+          </div>
+          <div class="sig-label" style="bottom: 24%; left: 0;">
+            <span class="sig-label-dot" style="background: #118BA0;"></span>Comunidad
+          </div>
+          <div class="sig-label" style="bottom: 6%; right: 6%;">
+            <span class="sig-label-dot" style="background: #7F7D3A;"></span>Ternura
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 3 -->
+    <section class="hero-panel hero-3">
+      <div class="organic-blob hero-blob-teal">
+        <svg viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <defs>
+            <radialGradient id="teal-grad" cx="35%" cy="35%">
+              <stop offset="0%" stop-color="#118BA0"/>
+              <stop offset="100%" stop-color="#0C5C6E"/>
+            </radialGradient>
+          </defs>
+          <path d="M 420,70 C 490,130 510,240 470,320 C 430,400 330,440 240,420 C 150,400 70,340 50,240 C 30,140 110,50 210,30 C 300,15 370,30 420,70 Z" fill="url(#teal-grad)"/>
+        </svg>
+      </div>
+
+      <div class="hero-3-start">
+        <div class="hero-3-eyebrow">Empezá · 03</div>
+        <h3 class="hero-3-title">
+          Sumá tu primera <span class="italic">marca.</span>
+        </h3>
+        <p class="hero-3-lede">
+          Buscá por nombre, elegí una figura sugerida, o ubicá en el mapa a una activista que aún no tiene artículo.
+        </p>
+        <a href="#buscar" class="hero-cta">
+          Ir al buscador <span class="arrow">↓</span>
+        </a>
+      </div>
+
+      <aside class="month-event">
+        <span class="month-event-tag">Evento del mes</span>
+        <h3>
+          Wikiproyecto <span class="italic">LGBT</span>
+        </h3>
+        <p>
+          Cada mes la comunidad hispanohablante convoca a escribir biografías queer nuevas. Es donde nace la lista que alimenta este atlas.
+        </p>
+        <a href="https://es.wikipedia.org/wiki/Wikiproyecto:LGBT/Evento_del_mes" class="cta" target="_blank" rel="noopener">
+          Sumate al desafío <span class="arrow">↗</span>
+        </a>
+      </aside>
+    </section>
   </div>
-  <a class="ec-link" href="https://es.wikipedia.org/wiki/Wikiproyecto:LGBT/Evento_del_mes" target="_blank" rel="noopener">
-    Ir al evento <span class="arrow">→</span>
-  </a>
-</aside>
+
+  <!-- Panel indicators -->
+  <div class="panel-dots" id="panelDots">
+    <button class="panel-dot on" data-panel="0" aria-label="Panel 1"></button>
+    <button class="panel-dot" data-panel="1" aria-label="Panel 2"></button>
+    <button class="panel-dot" data-panel="2" aria-label="Panel 3"></button>
+  </div>
+</div>
+
+<div class="page">
 
 <div class="stats">
   <div><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Personas mapeadas</div></div>
@@ -1420,7 +2007,7 @@
 
   <div class="col-controls">
 
-    <div class="panel">
+    <div class="panel" id="buscar">
       <h2>Buscar una figura</h2>
       <p class="panel-sub">Wikidata · escribí el nombre y elegí</p>
       <div class="search-wrap">
@@ -1603,7 +2190,7 @@
 </section>
 
 <footer>
-  <div>Queer Atlas · prototipo en construcción. Datos en LocalStorage (no se envían a ningún servidor).</div>
+  <div>Queer Atlas · cartografía afectiva colectiva · 2026</div>
   <div>Construido en diálogo con el Wikiproyecto:LGBT · Wikipedia en español</div>
 </footer>
 
@@ -1612,6 +2199,97 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ============================================================
+// HERO RAIL — horizontal scroll with drag, swipe, arrows, dots
+// ============================================================
+(function heroRailInit() {
+  const rail = document.getElementById('heroRail');
+  const dots = document.querySelectorAll('.panel-dot');
+  if (!rail || !dots.length) return;
+
+  function panelWidth() { return window.innerWidth; }
+
+  function setActiveDot(idx) {
+    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+  }
+
+  // Scroll listener — sync dots
+  let scrollTimeout = null;
+  rail.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const idx = Math.round(rail.scrollLeft / panelWidth());
+      setActiveDot(idx);
+    }, 50);
+  });
+
+  // Dot click — navigate to panel
+  dots.forEach(d => {
+    d.addEventListener('click', () => {
+      const idx = parseInt(d.dataset.panel);
+      rail.scrollTo({ left: idx * panelWidth(), behavior: 'smooth' });
+    });
+  });
+
+  // Mouse drag
+  let isDown = false, startX = 0, startScroll = 0, moved = false;
+  rail.addEventListener('mousedown', (e) => {
+    if (e.target.closest('a, button, input, textarea')) return;
+    isDown = true;
+    moved = false;
+    startX = e.pageX;
+    startScroll = rail.scrollLeft;
+    rail.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    const dx = e.pageX - startX;
+    if (Math.abs(dx) > 5) moved = true;
+    rail.scrollLeft = startScroll - dx;
+  });
+  window.addEventListener('mouseup', () => {
+    if (!isDown) return;
+    isDown = false;
+    rail.classList.remove('dragging');
+    // Snap to nearest panel
+    const idx = Math.round(rail.scrollLeft / panelWidth());
+    rail.scrollTo({ left: idx * panelWidth(), behavior: 'smooth' });
+  });
+
+  // Prevent click-through on links after drag
+  rail.addEventListener('click', (e) => {
+    if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; }
+  }, true);
+
+  // Keyboard arrows
+  window.addEventListener('keydown', (e) => {
+    const target = e.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+    const idx = Math.round(rail.scrollLeft / panelWidth());
+    if (e.key === 'ArrowRight' && idx < dots.length - 1) {
+      rail.scrollTo({ left: (idx + 1) * panelWidth(), behavior: 'smooth' });
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      rail.scrollTo({ left: (idx - 1) * panelWidth(), behavior: 'smooth' });
+    }
+  });
+
+  // Smooth anchor for #buscar CTA
+  const buscarCta = document.querySelector('.hero-cta[href="#buscar"]');
+  if (buscarCta) {
+    buscarCta.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById('search') || document.querySelector('.col-controls .panel');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          const input = document.getElementById('search');
+          if (input) input.focus();
+        }, 600);
+      }
+    });
+  }
+})();
+
 // ============================================================
 // CONFIG
 // ============================================================
@@ -2218,14 +2896,50 @@ function renderSliders() {
 // ============================================================
 // SIGNATURE (generative SVG based on emotion values)
 // ============================================================
+// Deterministic pseudo-random based on a seed string (so each person's
+// blob keeps the same silhouette across renders).
+function seedRng(seed) {
+  let s = 0;
+  for (let i = 0; i < seed.length; i++) s = (s * 31 + seed.charCodeAt(i)) >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+// Build an irregular closed path around (cx,cy) with mean radius r.
+// 8 control points with up to ±30% radius jitter, smoothed via quadratic Bezier.
+function organicBlobPath(cx, cy, r, rng) {
+  const N = 8;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const angle = (i / N) * Math.PI * 2;
+    const jitter = 0.7 + rng() * 0.6; // 70%-130% of radius
+    const rr = r * jitter;
+    pts.push({ x: cx + Math.cos(angle) * rr, y: cy + Math.sin(angle) * rr });
+  }
+  let d = `M ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < N; i++) {
+    const p = pts[i];
+    const next = pts[(i + 1) % N];
+    const mx = (p.x + next.x) / 2;
+    const my = (p.y + next.y) / 2;
+    d += ` Q ${p.x.toFixed(1)},${p.y.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
+  }
+  d += ' Z';
+  return d;
+}
+
 function renderSignature(targetSvg = null, emotionsOverride = null) {
   const svg = targetSvg || document.getElementById('signature');
   const ems = emotionsOverride || current.emotions;
   svg.innerHTML = '';
   const ns = 'http://www.w3.org/2000/svg';
   const cx = 100, cy = 100;
+  // Seed based on the SVG id so each person's blob is distinct but stable
+  const seedSrc = svg.id || 'signature';
 
-  // Each axis is one translucent circle whose radius scales with value
+  // Each axis is one organic blob whose radius scales with value
   ALL_AXES.forEach((e, i) => {
     const v = ems[e.key] || 0;
     if (v === 0) return;
@@ -2234,19 +2948,18 @@ function renderSignature(targetSvg = null, emotionsOverride = null) {
     const offset = 12 + (10 - v) * 1.4;
     const x = cx + Math.cos(angle) * offset;
     const y = cy + Math.sin(angle) * offset;
-    const c = document.createElementNS(ns, 'circle');
-    c.setAttribute('cx', x);
-    c.setAttribute('cy', y);
-    c.setAttribute('r', r);
-    c.setAttribute('fill', e.color);
-    c.setAttribute('opacity', 0.42);
-    svg.appendChild(c);
+    const rng = seedRng(seedSrc + ':' + e.key);
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', organicBlobPath(x, y, r, rng));
+    path.setAttribute('fill', e.color);
+    path.setAttribute('opacity', 0.48);
+    svg.appendChild(path);
   });
 
   // Anchor dot at center
   const dot = document.createElementNS(ns, 'circle');
   dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
-  dot.setAttribute('r', 2); dot.setAttribute('fill', '#050609');
+  dot.setAttribute('r', 2); dot.setAttribute('fill', '#140A1F');
   svg.appendChild(dot);
 }
 
@@ -2545,10 +3258,9 @@ function initMap() {
     return;
   }
   map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([10, -30], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> · <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 18,
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    maxZoom: 19,
   }).addTo(map);
 
   map.on('click', (e) => {
