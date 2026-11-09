@@ -312,11 +312,30 @@
      PANELS — cards with editorial treatment
      ============================================================ */
   .panel {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    padding: 24px;
+    background: rgba(255,255,255,0.72);
+    border: 1px solid transparent;
+    border-radius: 24px;
+    padding: 28px;
     position: relative;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow:
+      0 1px 2px rgba(59,28,79,0.04),
+      0 12px 32px -8px rgba(59,28,79,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(135deg, rgba(230,40,107,0.22), rgba(17,139,160,0.18), transparent 70%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
   }
   .panel h2 {
     font-family: var(--display);
@@ -423,10 +442,11 @@
 
   /* Suggested seed names */
   .suggested-pop {
-    background: var(--bg-soft);
-    border: 1.5px dashed var(--teal);
-    border-radius: 4px;
-    padding: 18px 16px;
+    background: linear-gradient(145deg, rgba(198,212,200,0.45), rgba(255,184,46,0.12));
+    border: 1px solid rgba(17,139,160,0.18);
+    border-radius: 20px;
+    padding: 22px 20px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
   }
   .sp-title {
     font-family: var(--mono);
@@ -437,25 +457,34 @@
     color: var(--teal);
     margin-bottom: 14px;
   }
-  .sp-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .sp-list button {
+  .sp-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .sp-list button, .sp-list .sp-item {
+    display: inline-flex;
+    align-items: center;
     font-family: var(--body);
     font-size: 13px;
     font-weight: 500;
-    padding: 7px 13px;
+    padding: 8px 14px;
     background: var(--cream);
-    border: 1.5px solid var(--ink);
+    border: 1.5px solid var(--aubergine);
     border-radius: 100px;
-    color: var(--ink);
+    color: var(--aubergine);
     cursor: pointer;
     transition: all 0.15s;
+    user-select: none;
+    line-height: 1.2;
   }
-  .sp-list button:hover {
+  .sp-list button:hover, .sp-list .sp-item:hover {
     background: var(--magenta);
     color: var(--cream);
     border-color: var(--magenta);
+    transform: translateY(-1px);
   }
-  .sp-list button.loaded { background: var(--teal); color: var(--cream); border-color: var(--teal); }
+  .sp-list button.loaded, .sp-list .sp-item.loaded {
+    background: var(--teal);
+    color: var(--cream);
+    border-color: var(--teal);
+  }
   .sp-meta { font-size: 11px; color: var(--ink-mute); font-style: italic; line-height: 1.4; }
   .sp-meta code { font-family: var(--mono); font-size: 10px; background: var(--cream); padding: 1px 5px; border-radius: 2px; }
 
@@ -604,14 +633,60 @@
     font-weight: 500;
     color: var(--ink);
   }
-  .slider-row input[type="range"] {
+  input[type="range"].s-input {
     width: 100%;
-    accent-color: var(--magenta);
     height: 4px;
-    background: var(--sage-soft);
+    background: transparent;
     border: 0;
     padding: 0;
     cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    accent-color: var(--aubergine);
+  }
+  input[type="range"].s-input::-webkit-slider-runnable-track {
+    height: 4px;
+    background: linear-gradient(to right,
+      var(--aubergine) 0%,
+      var(--aubergine) var(--val, 0%),
+      var(--sage-soft) var(--val, 0%),
+      var(--sage-soft) 100%);
+    border-radius: 100px;
+  }
+  input[type="range"].s-input::-moz-range-track {
+    height: 4px;
+    background: var(--sage-soft);
+    border-radius: 100px;
+  }
+  input[type="range"].s-input::-moz-range-progress {
+    height: 4px;
+    background: var(--aubergine);
+    border-radius: 100px;
+  }
+  input[type="range"].s-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--aubergine);
+    border: 2px solid var(--cream);
+    box-shadow: 0 2px 6px rgba(59,28,79,0.35);
+    cursor: pointer;
+    margin-top: -7px;
+  }
+  input[type="range"].s-input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--aubergine);
+    border: 2px solid var(--cream);
+    box-shadow: 0 2px 6px rgba(59,28,79,0.35);
+    cursor: pointer;
+  }
+  input[type="range"].s-input:focus { outline: none; }
+  input[type="range"].s-input:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(230,40,107,0.3);
   }
   .slider-row .val {
     font-family: var(--mono);
@@ -748,11 +823,15 @@
 
   /* Filters */
   .filters {
-    background: rgba(255,255,255,0.6);
-    border: 1px solid var(--rule);
-    backdrop-filter: blur(10px);
-    padding: 20px 22px;
-    border-radius: 8px;
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(59,28,79,0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 22px 24px;
+    border-radius: 20px;
+    box-shadow:
+      0 1px 2px rgba(59,28,79,0.03),
+      0 10px 24px -8px rgba(59,28,79,0.1);
   }
   .filter-row {
     display: flex;
@@ -842,6 +921,150 @@
   #map .leaflet-control-zoom a:hover { background: var(--amber); }
   .qa-pin > div { transition: transform 0.15s; }
   .qa-pin:hover > div { transform: scale(1.3); }
+
+  /* Editorial popup styling */
+  .leaflet-popup.qa-popup-wrap .leaflet-popup-content-wrapper {
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    border-radius: 14px;
+    padding: 0;
+    box-shadow: 8px 8px 0 var(--aubergine);
+    font-family: var(--body);
+    color: var(--ink);
+  }
+  .leaflet-popup.qa-popup-wrap .leaflet-popup-content {
+    margin: 16px 18px 16px 16px;
+    line-height: 1.4;
+    font-size: 13px;
+    width: auto !important;
+  }
+  .leaflet-popup.qa-popup-wrap .leaflet-popup-tip {
+    background: var(--cream);
+    border: 1.5px solid var(--ink);
+    border-top: 0;
+    border-left: 0;
+  }
+  .leaflet-popup.qa-popup-wrap .leaflet-popup-close-button {
+    color: var(--ink);
+    font-size: 20px;
+    padding: 8px 10px;
+    font-family: var(--body);
+    font-weight: 400;
+  }
+  .leaflet-popup.qa-popup-wrap .leaflet-popup-close-button:hover {
+    color: var(--magenta);
+    background: transparent;
+  }
+  .qa-popup { display: flex; flex-direction: column; gap: 10px; }
+  .qa-pop-top { display: flex; gap: 12px; align-items: flex-start; }
+  .qa-pop-img {
+    width: 64px; height: 64px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1.5px solid var(--ink);
+    flex-shrink: 0;
+  }
+  .qa-pop-placeholder {
+    width: 64px; height: 64px;
+    border-radius: 2px;
+    border: 1.5px dashed var(--aubergine);
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--display);
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--aubergine);
+    flex-shrink: 0;
+  }
+  .qa-pop-info { flex: 1; min-width: 0; }
+  .qa-pop-name {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 4px;
+    font-variation-settings: 'opsz' 144;
+  }
+  .qa-pop-years {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    opacity: 0.7;
+    margin-bottom: 3px;
+  }
+  .qa-pop-place {
+    font-size: 12px;
+    color: var(--aubergine);
+    font-style: italic;
+    font-family: var(--italic);
+  }
+  .qa-pop-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+    background: var(--amber);
+    padding: 3px 7px;
+    border-radius: 2px;
+    margin-top: 6px;
+  }
+  .qa-pop-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink);
+    opacity: 0.8;
+    padding: 8px 0;
+    border-top: 1px dashed var(--rule);
+  }
+  .qa-pop-note {
+    font-family: var(--italic);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding: 8px 12px;
+    background: rgba(255,184,46,0.15);
+    border-left: 2px solid var(--amber);
+    border-radius: 0 3px 3px 0;
+  }
+  .qa-pop-langs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .qa-pop-langs span {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 3px 7px;
+    border-radius: 2px;
+  }
+  .qa-pop-langs .y { background: var(--sage); color: var(--ink); }
+  .qa-pop-langs .n { background: var(--amber); color: var(--ink); }
+  .qa-pop-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--ink);
+    padding: 8px 12px;
+    text-decoration: none;
+    border-radius: 100px;
+    transition: all 0.15s;
+    align-self: flex-start;
+  }
+  .qa-pop-link:hover {
+    background: var(--magenta);
+    color: var(--cream);
+  }
 
   /* Timeline */
   .timeline-wrap {
@@ -966,12 +1189,15 @@
   }
   .below-map.on { display: flex; }
   .below-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    padding: 24px;
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(59,28,79,0.08);
+    border-radius: 20px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 24px -8px rgba(59,28,79,0.1);
   }
   .below-card h3 {
     font-family: var(--display);
@@ -2873,13 +3099,17 @@ function renderLangs() {
 }
 
 function renderSliders() {
-  const sliderHTML = (axis) => `
+  const sliderHTML = (axis) => {
+    const v = current.emotions[axis.key];
+    const pct = (v / 10) * 100;
+    return `
     <div class="slider">
       <label class="s-label" for="sl-${axis.key}">${axis.label}</label>
-      <input type="range" min="0" max="10" step="1" value="${current.emotions[axis.key]}" id="sl-${axis.key}" class="s-input" style="--c:${axis.color}">
-      <span class="s-num" id="sn-${axis.key}">${current.emotions[axis.key]}</span>
+      <input type="range" min="0" max="10" step="1" value="${v}" id="sl-${axis.key}" class="s-input" style="--c:${axis.color}; --val:${pct}%">
+      <span class="s-num" id="sn-${axis.key}">${v}</span>
     </div>
   `;
+  };
   document.getElementById('sliders').innerHTML = EMOTIONS.map(sliderHTML).join('');
   document.getElementById('sliders-pain').innerHTML = PAINS.map(sliderHTML).join('');
   ALL_AXES.forEach(e => {
@@ -2888,6 +3118,7 @@ function renderSliders() {
     input.addEventListener('input', () => {
       current.emotions[e.key] = parseInt(input.value);
       num.textContent = input.value;
+      input.style.setProperty('--val', (input.value / 10 * 100) + '%');
       renderSignature();
     });
   });
@@ -3333,15 +3564,49 @@ function renderMap() {
       iconAnchor: [9, 9],
     });
     const m = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
+
+    // Best available Wikipedia link for the popup CTA
+    const bestLang = isManual ? null : LANGS.find(l => e.sitelinks[l.code]);
+    const wikiHref = bestLang
+      ? `https://${bestLang.code}.wikipedia.org/wiki/${encodeURIComponent(e.sitelinks[bestLang.code])}`
+      : null;
+
+    const imageUrl = !isManual && e.image
+      ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(e.image)}?width=160`
+      : null;
+
+    const years = `${e.birthYear ?? '?'}${e.deathYear ? ' – ' + e.deathYear : (e.birthYear ? ' –' : '')}`;
+
     const popupBody = isManual
-      ? `<strong>${escapeHtml(e.name)}</strong><br>
-         <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
-         <span style="font-size:11px;color:var(--olive);font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Sin Wikipedia o Wikidata · biografía pendiente</span>`
-      : `<strong>${escapeHtml(e.name)}</strong><br>
-         <span style="font-size:11px;color:#888">${e.birthYear ?? '?'} – ${e.deathYear ?? ''}</span><br>
-         <span style="font-size:11px;font-family:monospace;color:#888">${e.qid}</span><br>
-         <span style="font-size:11px;letter-spacing:0.04em">${LANGS.map(l => `${l.label}${e.sitelinks[l.code] ? '✓' : '✗'}`).join('  ')}</span>`;
-    m.bindPopup(popupBody);
+      ? `<div class="qa-popup">
+           <div class="qa-pop-top">
+             <div class="qa-pop-placeholder" aria-hidden="true">?</div>
+             <div class="qa-pop-info">
+               <div class="qa-pop-name">${escapeHtml(e.name)}</div>
+               <div class="qa-pop-years">${years}</div>
+               <div class="qa-pop-tag">Sin Wikipedia o Wikidata</div>
+             </div>
+           </div>
+           <div class="qa-pop-note">Biografía pendiente. ¿Te sumás a escribirla?</div>
+         </div>`
+      : `<div class="qa-popup">
+           <div class="qa-pop-top">
+             ${imageUrl
+               ? `<img class="qa-pop-img" src="${imageUrl}" alt="${escapeHtml(e.name)}" loading="lazy" onerror="this.style.display='none'">`
+               : `<div class="qa-pop-placeholder" aria-hidden="true">${escapeHtml(e.name[0] || '·')}</div>`}
+             <div class="qa-pop-info">
+               <div class="qa-pop-name">${escapeHtml(e.name)}</div>
+               <div class="qa-pop-years">${years}</div>
+               ${e.pobLabel ? `<div class="qa-pop-place">${escapeHtml(e.pobLabel)}</div>` : ''}
+             </div>
+           </div>
+           ${e.description ? `<div class="qa-pop-desc">${escapeHtml(e.description)}</div>` : ''}
+           <div class="qa-pop-langs">${LANGS.map(l =>
+             `<span class="${e.sitelinks[l.code] ? 'y' : 'n'}">${l.label}</span>`
+           ).join('')}</div>
+           ${wikiHref ? `<a class="qa-pop-link" href="${wikiHref}" target="_blank" rel="noopener">Leer en Wikipedia →</a>` : ''}
+         </div>`;
+    m.bindPopup(popupBody, { maxWidth: 280, minWidth: 240, className: 'qa-popup-wrap' });
     markers[e.qid] = m;
   });
 }
